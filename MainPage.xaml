@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CashPlace.MainPage">
+
+    <Grid>
+        <!-- ЭКРАН НАСТРОЙКИ (IsVisible="True" по умолчанию!) -->
+        <VerticalStackLayout x:Name="SetupLayout"
+                             Padding="30"
+                             Spacing="25"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             IsVisible="True">
+            
+            <Label Text="Настройка планшета"
+                   FontSize="Large"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+            
+            <Label Text="Отсканируйте QR-код с кассы или вставьте его сюда"
+                   HorizontalOptions="Center"
+                   TextColor="Gray" />
+            
+            <Entry x:Name="QrCodeEntry"
+                   Placeholder="Вставьте код сюда..."
+                   WidthRequest="400"
+                   HorizontalOptions="Center" />
+            
+            <Button x:Name="SaveSettingsBtn"
+                    Text="Сохранить настройки"
+                    Clicked="OnSaveSettingsClicked"
+                    HorizontalOptions="Center"
+                    WidthRequest="200" />
+        </VerticalStackLayout>
+
+        <!-- РАБОЧИЙ ЭКРАН (IsVisible="False" по умолчанию!) -->
+        <VerticalStackLayout x:Name="WorkLayout"
+                             Padding="30"
+                             Spacing="20"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             IsVisible="False">
+            
+            <Label Text="Текущий магазин:"
+                   FontSize="Medium"
+                   HorizontalOptions="Center"
+                   TextColor="Gray" />
+            
+            <Label x:Name="StoreNickLabel"
+                   Text="..."
+                   FontSize="Header"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

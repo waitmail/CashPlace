@@ -1,0 +1,44 @@
+## -----------------------------------------------
+## Стандартный .gitignore для .NET / MAUI проектов
+## -----------------------------------------------
+
+# Папки сборки (результатов компиляции)
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Папки NuGet (если используете packages.config, для .NET Core/5+ они не нужны, но хуже не будет)
+[Pp]ackages/
+*.nupkg
+*.snupkg
+
+# Файлы JetBrains Rider и Visual Studio
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.userprefs
+
+# Кэши ReSharper
+_ReSharper.Caches/
+*.resharper
+
+# Файлы операционных систем
+.DS_Store
+Thumbs.db
+
+# Специфичные для MAUI / Android / iOS файлы
+*.apk
+*.aab
+*.ipa
+*.dll.mdb
+*.exe.mdb
+
+# Логи
+*.log
+[Ll]ogs/
+CryptorEngine.cs

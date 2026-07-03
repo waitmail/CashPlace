@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="CashPlace.CheckPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:CashPlace"
+             x:Name="rootPage"
+             Title="Чек">
+             
+    <Grid RowDefinitions="Auto, Auto, *, Auto, Auto">
+        
+        <!-- 1. Верхняя панель -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, *, *" Padding="10" BackgroundColor="#FF007ACC">
+            <Label Grid.Column="0" x:Name="NumCashLabel" TextColor="White" FontAttributes="Bold"/>
+            <Label Grid.Column="1" x:Name="DateTimeLabel" TextColor="White" HorizontalOptions="Center"/>
+            <Label Grid.Column="2" x:Name="UserLabel" TextColor="White" HorizontalOptions="End"/>
+        </Grid>
+
+        <!-- 2. Поле поиска товара -->
+        <Entry Grid.Row="1" x:Name="SearchProductEntry" 
+               Placeholder="Отсканируйте штрихкод или код" 
+               Keyboard="Numeric"
+               ReturnType="Done"
+               Completed="SearchProductEntry_Completed"
+               Margin="10"/>
+
+        <!-- 3. Список товаров -->
+        <CollectionView Grid.Row="2" x:Name="ProductsCollectionView" 
+                        ItemsSource="{Binding ProductsList}" 
+                        SelectionMode="Single"
+                        Margin="5">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="views:ProductItem">
+                    <Frame Margin="5" Padding="10" BorderColor="LightGray" HasShadow="False">
+                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto">
+                            
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Tovar}" FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding SumAtDiscount, StringFormat='{0:F2} ₽'}" FontSize="18" FontAttributes="Bold" TextColor="DarkBlue"/>
+                            
+                            <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="10" Margin="0,5,0,0">
+                                <!-- ✅ Кнопки блокируются, если это не новый чек -->
+                                <Button Text="-" WidthRequest="40" Clicked="OnDecreaseQuantity" 
+                                        BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+                                <Label Text="{Binding Quantity, StringFormat='Кол-во: {0}'}" VerticalOptions="Center" FontSize="16"/>
+                                <!-- ✅ Кнопки блокируются, если это не новый чек -->
+                                <Button Text="+" WidthRequest="40" Clicked="OnIncreaseQuantity" 
+                                        BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+                            </HorizontalStackLayout>
+                            
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding PriceAtDiscount, StringFormat='Цена: {0:F2} ₽/шт'}" 
+                                   FontSize="14" TextColor="DarkGray" VerticalOptions="Center" HorizontalOptions="End"/>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- 4. Общая сумма -->
+        <Grid Grid.Row="3" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="LightGray">
+            <Label Grid.Column="0" Text="ИТОГО:" FontSize="20" FontAttributes="Bold" VerticalOptions="Center"/>
+            <Label Grid.Column="1" x:Name="TotalSumLabel" Text="0.00 ₽" FontSize="24" FontAttributes="Bold" TextColor="DarkGreen"/>
+        </Grid>
+
+        <!-- 5. Кнопка оплаты -->
+        <Button Grid.Row="4" x:Name="PayButton" Text="ОПЛАТА" 
+                BackgroundColor="#FF2196F3" TextColor="White" 
+                FontSize="20" FontAttributes="Bold" 
+                Margin="10" HeightRequest="60"
+                Clicked="PayButton_Clicked"/>
+
+    </Grid>
+</ContentPage>
