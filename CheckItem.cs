@@ -17,6 +17,7 @@ namespace CashPlace
         public bool ItsPrintP { get; set; }
         public bool Extra { get; set; }
 
+
         // Вспомогательные свойства для удобного отображения в XAML
         public string FormattedDate => DateTimeWrite.ToString("dd.MM.yyyy HH:mm");
         public string FormattedCash => $"{Cash:C}";
