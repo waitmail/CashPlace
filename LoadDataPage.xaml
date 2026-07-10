@@ -3,14 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CashPlace.LoadDataPage"
              Title="Загрузка данных">
-    <!-- Убрал лишнюю 7-ю строку из RowDefinitions, так как используется 6 -->
+             
     <Grid Padding="15" RowDefinitions="Auto, Auto, Auto, Auto, Auto, *">
         
-        <!-- Контейнер для кнопок, чтобы они не наезжали друг на друга -->
-        <VerticalStackLayout Grid.Row="0" Spacing="10">
+        <!-- Блок 1: Загрузка данных -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5" Margin="0,0,0,15">
             <Button x:Name="BtnLoad" Text="Начать загрузку данных" 
-                    Clicked="BtnLoad_Clicked" BackgroundColor="#2196F3" TextColor="White" HeightRequest="50"/>
-            
+                    Clicked="BtnLoad_Clicked" BackgroundColor="#2196F3" TextColor="White" 
+                    FontSize="18" FontAttributes="Bold" HeightRequest="50"/>
+            <Label x:Name="LastUpdateText" Text="Последняя загрузка: неизвестна" 
+                   FontSize="14" TextColor="#888888" HorizontalOptions="Start" Margin="5,0,0,0"/>
+        </VerticalStackLayout>
+
+        <!-- Блок 2: Выгрузка чеков -->
+        <VerticalStackLayout Grid.Row="1" Spacing="5" Margin="0,0,0,15">
             <Button x:Name="BtnUpload"
                     Text="Выгрузить чеки на сервер"
                     BackgroundColor="#FF4CAF50"
@@ -19,16 +25,15 @@
                     FontAttributes="Bold"
                     HeightRequest="50"
                     Clicked="BtnUpload_Clicked"/>
+            <Label x:Name="LastUploadText" Text="Последняя выгрузка: неизвестна" 
+                   FontSize="14" TextColor="#888888" HorizontalOptions="Start" Margin="5,0,0,0"/>
         </VerticalStackLayout>
         
-        <Label Grid.Row="1" x:Name="WorkHintText" Text="Во время загрузки вы можете продолжать работу" 
+        <Label Grid.Row="2" x:Name="WorkHintText" Text="Во время загрузки вы можете продолжать работу" 
                FontSize="13" FontAttributes="Italic" TextColor="#4CAF50" Margin="0,5,0,0" IsVisible="False"/>
         
-        <Label Grid.Row="2" x:Name="TimeInfoText" Text="Время загрузки: 00:00" 
+        <Label Grid.Row="3" x:Name="TimeInfoText" Text="Время загрузки: 00:00" 
                FontSize="16" TextColor="#666666" Margin="0,0,0,5" IsVisible="False"/>
-        
-        <Label Grid.Row="3" x:Name="LastUpdateText" Text="Последняя загрузка: неизвестна" 
-               FontSize="14" TextColor="#888888" Margin="0,0,0,10"/>
         
         <Border Grid.Row="4" BackgroundColor="#F8F8F8" Stroke="#CCCCCC" StrokeShape="RoundRectangle 8" Padding="15" Margin="0,5,0,0">
             <VerticalStackLayout x:Name="ProgressPanel" Spacing="10" IsVisible="False">

@@ -68,9 +68,29 @@ public partial class LoadDataPage : ContentPage
         InitializeDatabase();
         //InitializeConstants();
         UpdateLastSyncDate();
+        UpdateLastUploadDate();
     }
+    
+        // ★ НОВЫЙ МЕТОД: Читает время последней выгрузки из памяти планшета ★
+        private void UpdateLastUploadDate()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                // Читаем сохраненное время выгрузки (если нет, возвращаем пустую строку)
+                string savedDate = Preferences.Get("last_upload_time", "");
 
-    private void InitializeDatabase()
+                if (DateTime.TryParse(savedDate, out DateTime lastDate))
+                {
+                    LastUploadText.Text = $"Последняя выгрузка: {lastDate:dd.MM.yyyy HH:mm}";
+                }
+                else
+                {
+                    LastUploadText.Text = "Последняя выгрузка: данных еще нет";
+                }
+            });
+        }
+
+        private void InitializeDatabase()
 {
     using var conn = new SqliteConnection($"Data Source={DbPath}");
     conn.Open();
@@ -324,7 +344,7 @@ public partial class LoadDataPage : ContentPage
             queryPacketData.NickShop = nick_shop;
             queryPacketData.CodeShop = code_shop;
             queryPacketData.LastDateDownloadTovar = last_date_download_tovars().ToString("dd-MM-yyyy");
-            queryPacketData.NumCash = "11";//MainStaticClass.CashDeskNumber.ToString();
+            queryPacketData.NumCash = "10";//MainStaticClass.CashDeskNumber.ToString();
             queryPacketData.Version = MainStaticClass.GetProductVersion().Replace(".", "");
 
             string data = JsonConvert.SerializeObject(queryPacketData, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
@@ -667,34 +687,56 @@ public partial class LoadDataPage : ContentPage
     #endregion
 
     #endregion // Основная логика загрузки
-    
-    
+
+
     private async void BtnUpload_Clicked(object sender, EventArgs e)
-{
-    if (_isLoading) return;
-    
-    bool confirm = await DisplayAlert("Подтверждение", "Выполнить выгрузку чеков на сервер?", "Да", "Нет");
-    if (!confirm) return;
-
-    try
     {
-        BtnUpload.Text = "Выгрузка...";
-        BtnUpload.IsEnabled = false;
+        if (_isLoading) return;
 
-        await Task.Run(async () => await UploadChecksAsync());
+        bool confirm = await DisplayAlert("Подтверждение", "Выполнить выгрузку чеков на сервер?", "Да", "Нет");
+        if (!confirm) return;
 
-        await DisplayAlert("Успех", "Выгрузка чеков завершена", "OK");
+        try
+        {
+            BtnUpload.Text = "Выгрузка...";
+            BtnUpload.IsEnabled = false;
+
+            await Task.Run(async () => await UploadChecksAsync());
+
+            // ★ СОХРАНЯЕМ ВРЕМЯ ВЫГРУЗКИ В НАСТРОЙКИ ★
+            Preferences.Set("last_upload_time", DateTime.Now.ToString());
+            
+            // ★ ОБНОВЛЯЕМ НАДПИСЬ НА ЭКРАНЕ ★
+            UpdateLastUploadDate();
+
+            await DisplayAlert("Успех", "Выгрузка чеков завершена", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ошибка", ex.Message, "OK");
+        }
+        finally
+        {
+            BtnUpload.Text = "Выгрузить чеки на сервер";
+            BtnUpload.IsEnabled = true;
+        }
     }
-    catch (Exception ex)
-    {
-        await DisplayAlert("Ошибка", ex.Message, "OK");
-    }
-    finally
-    {
-        BtnUpload.Text = "Выгрузить чеки на сервер";
-        BtnUpload.IsEnabled = true;
-    }
-}
+
+    private string FormatDateForServer(string dateString)
+        {
+            // Если строка пустая, возвращаем как есть
+            if (string.IsNullOrWhiteSpace(dateString)) return dateString;
+            
+            // Пробуем распарсить дату (это сработает и для yyyy-MM-dd, и для dd.MM.yyyy)
+            if (DateTime.TryParse(dateString, out DateTime parsedDate))
+            {
+                // Возвращаем в строгом формате дд.мм.гггг ЧЧ:мм:сс
+                return parsedDate.ToString("dd.MM.yyyy HH:mm:ss");
+            }
+            
+            // Если распарсить не удалось, возвращаем оригинал
+            return dateString;
+        }
 
     private async Task UploadChecksAsync()
     {
@@ -774,17 +816,20 @@ public partial class LoadDataPage : ContentPage
                             Discount =
                                 (GetSafeString("discount") == "" ? "0" : GetSafeString("discount")).Replace(",", "."),
                             Sum = (GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
+                            Sum_cash=(GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
                             Check_type = GetSafeString("check_type") == "" ? "0" : GetSafeString("check_type"),
-                            Date_time_start = GetSafeString("date_time_start"),
-                            Date_time_write = GetSafeString("date_time_write"),
+                            // Date_time_start = GetSafeString("date_time_start"),
+                            // Date_time_write = GetSafeString("date_time_write"),
+                            Date_time_start = FormatDateForServer(GetSafeString("date_time_start")),
+                            Date_time_write = FormatDateForServer(GetSafeString("date_time_write")),
+                            
                             Its_deleted = GetSafeString("its_deleted") == "" ? "0" : GetSafeString("its_deleted"),
                             Autor = GetSafeString("autor"),
                             Comment = GetSafeString("comment"),
-
                             // ✅ Безопасное чтение флагов печати
                             Its_print = (GetSafeInt("its_print") == 1 && GetSafeInt("its_print_p") == 1) ? "1" : "0",
 
-                            Extra = GetSafeString("extra") == "" ? "0" : GetSafeString("extra"),
+                            Extra = "1",//GetSafeString("extra") == "" ? "0" : GetSafeString("extra"),
                             Guid = GetSafeString("guid")
                         };
                         salesPortions.ListSalesPortionsHeader.Add(header);

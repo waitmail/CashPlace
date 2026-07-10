@@ -78,7 +78,7 @@ public partial class ChecksPage : ContentPage
 
                         string myQuery = @"
                             SELECT its_deleted, date_time_write, client, cash, remainder, comment, 
-                                   its_print, check_type, document_number, its_print_p, extra
+                                   its_print, check_type, document_number, its_print_p, extra, is_sent
                             FROM checks_header 
                             WHERE date_time_write >= @startDate AND date_time_write < @endDate 
                               AND its_deleted < 2 
@@ -117,6 +117,7 @@ public partial class ChecksPage : ContentPage
                                     }
 
                                     checkItem.DocumentNumber = reader.IsDBNull(8) ? "" : reader.GetValue(8).ToString();
+                                    checkItem.IsSent = !reader.IsDBNull(11) && Convert.ToInt32(reader.GetValue(11)) == 1;
                                     items.Add(checkItem);
                                 }
                             }

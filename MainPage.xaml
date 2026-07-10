@@ -4,7 +4,7 @@
              x:Class="CashPlace.MainPage">
 
     <Grid>
-        <!-- ЭКРАН НАСТРОЙКИ (IsVisible="True" по умолчанию!) -->
+        <!-- ЭКРАН НАСТРОЙКИ -->
         <VerticalStackLayout x:Name="SetupLayout"
                              Padding="30"
                              Spacing="25"
@@ -12,28 +12,16 @@
                              VerticalOptions="Center"
                              IsVisible="True">
             
-            <Label Text="Настройка планшета"
-                   FontSize="Large"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center" />
+            <Label Text="Настройка планшета" FontSize="Large" FontAttributes="Bold" HorizontalOptions="Center" />
+            <Label Text="Отсканируйте QR-код с кассы или вставьте его сюда" HorizontalOptions="Center" TextColor="Gray" />
             
-            <Label Text="Отсканируйте QR-код с кассы или вставьте его сюда"
-                   HorizontalOptions="Center"
-                   TextColor="Gray" />
+            <Entry x:Name="QrCodeEntry" Placeholder="Вставьте код сюда..." WidthRequest="400" HorizontalOptions="Center" />
             
-            <Entry x:Name="QrCodeEntry"
-                   Placeholder="Вставьте код сюда..."
-                   WidthRequest="400"
-                   HorizontalOptions="Center" />
-            
-            <Button x:Name="SaveSettingsBtn"
-                    Text="Сохранить настройки"
-                    Clicked="OnSaveSettingsClicked"
-                    HorizontalOptions="Center"
-                    WidthRequest="200" />
+            <Button x:Name="ScanBtn" Text="📷 Сканер камерой" Clicked="OnScanClicked" HorizontalOptions="Center" WidthRequest="200" Margin="0,10" />
+            <Button x:Name="SaveSettingsBtn" Text="Сохранить настройки" Clicked="OnSaveSettingsClicked" HorizontalOptions="Center" WidthRequest="200" />
         </VerticalStackLayout>
 
-        <!-- РАБОЧИЙ ЭКРАН (IsVisible="False" по умолчанию!) -->
+        <!-- РАБОЧИЙ ЭКРАН -->
         <VerticalStackLayout x:Name="WorkLayout"
                              Padding="30"
                              Spacing="20"
@@ -41,16 +29,34 @@
                              VerticalOptions="Center"
                              IsVisible="False">
             
-            <Label Text="Текущий магазин:"
-                   FontSize="Medium"
-                   HorizontalOptions="Center"
-                   TextColor="Gray" />
-            
-            <Label x:Name="StoreNickLabel"
-                   Text="..."
-                   FontSize="Header"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center" />
+            <Label Text="Текущий магазин:" FontSize="Medium" HorizontalOptions="Center" TextColor="Gray" />
+            <Label x:Name="StoreNickLabel" Text="..." FontSize="Header" FontAttributes="Bold" HorizontalOptions="Center" />
+
+            <!-- ★ ОТОБРАЖЕНИЕ ВЕРСИИ ★ -->
+            <Label x:Name="VersionLabel" 
+                   Text="Версия: ..." 
+                   FontSize="Micro" 
+                   TextColor="LightGray" 
+                   HorizontalOptions="Center" 
+                   Margin="0,0,0,20" />
+
+                    <!-- ★ БЛОК ОБНОВЛЕНИЙ ★ -->
+            <Button x:Name="UpdateBtn" 
+                    Text="⬇ Установить обновление программы" 
+                    BackgroundColor="OrangeRed" 
+                    TextColor="White"
+                    Clicked="OnInstallUpdateClicked"
+                    IsVisible="False" 
+                    Margin="0,30,0,0" 
+                    WidthRequest="350" />
+
+            <Button x:Name="CheckUpdateBtn" 
+                    Text="Проверить обновления" 
+                    BackgroundColor="LightGray" 
+                    TextColor="Black"
+                    Clicked="OnCheckUpdateClicked"
+                    Margin="0,10,0,0" 
+                    WidthRequest="200" />
         </VerticalStackLayout>
     </Grid>
 

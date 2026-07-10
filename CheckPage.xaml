@@ -15,13 +15,23 @@
             <Label Grid.Column="2" x:Name="UserLabel" TextColor="White" HorizontalOptions="End"/>
         </Grid>
 
-        <!-- 2. Поле поиска товара -->
-        <Entry Grid.Row="1" x:Name="SearchProductEntry" 
-               Placeholder="Отсканируйте штрихкод или код" 
-               Keyboard="Numeric"
-               ReturnType="Done"
-               Completed="SearchProductEntry_Completed"
-               Margin="10"/>
+        <!-- 2. Поле поиска товара и кнопка сканера -->
+        <HorizontalStackLayout Grid.Row="1" Spacing="10" Margin="10">
+            <Entry x:Name="SearchProductEntry" 
+                   Placeholder="Отсканируйте штрихкод или код" 
+                   Keyboard="Numeric"
+                   ReturnType="Done"
+                   Completed="SearchProductEntry_Completed"
+                   WidthRequest="280"/>
+
+            <!-- ★ КНОПКА СКАНЕРА ★ -->
+            <Button x:Name="ScanBtn" 
+                    Text="📷" 
+                    Clicked="OnScanClicked" 
+                    WidthRequest="60" 
+                    HeightRequest="50" 
+                    VerticalOptions="Center" />
+        </HorizontalStackLayout>
 
         <!-- 3. Список товаров -->
         <CollectionView Grid.Row="2" x:Name="ProductsCollectionView" 

@@ -42,6 +42,7 @@ namespace CashPlace
 
             try
             {
+                //_url = "http://localhost:50520/DS.asmx";
                 // Создаем HttpWebRequest для поддержки Timeout
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(_url);
                 request.Method = "POST";
@@ -432,21 +433,21 @@ namespace CashPlace
             return ParseSoapResponse<string>(response, "ExistsUpdateProrgamAvalon");
         }
 
-        public string GetUpdateProgramAvalon(string nick_shop, string data, string scheme)
+        public string GetUpdateProgramAndroid(string nick_shop, string data, string scheme)
         {
             string soapEnvelope = $@"<?xml version=""1.0"" encoding=""utf-8""?>
                 <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                     <soap:Body>
-                        <GetUpdateProgramAvalon xmlns=""http://tempuri.org/"">
+                        <GetUpdateProgramAndroid xmlns=""http://tempuri.org/"">
                             <nick_shop>{SecurityHelper.EscapeXml(nick_shop)}</nick_shop>
                             <data>{SecurityHelper.EscapeXml(data)}</data>
                             <scheme>{SecurityHelper.EscapeXml(scheme)}</scheme>
-                        </GetUpdateProgramAvalon>
+                        </GetUpdateProgramAndroid>
                     </soap:Body>
                 </soap:Envelope>";
 
-            string response = ExecuteSoapRequest(soapEnvelope, "GetUpdateProgramAvalon");
-            return ParseSoapResponse<string>(response, "GetUpdateProgramAvalon");
+            string response = ExecuteSoapRequest(soapEnvelope, "GetUpdateProgramAndroid");
+            return ParseSoapResponse<string>(response, "GetUpdateProgramAndroid");
         }
 
         public byte[] GetNpgsqlNew(string nick_shop, string data, string scheme)

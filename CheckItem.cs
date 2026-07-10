@@ -13,6 +13,7 @@ namespace CashPlace
         public bool ItsPrint { get; set; }
         public string CheckType { get; set; } = "";
         public string DocumentNumber { get; set; } = "";
+        public bool IsSent { get; set; } 
         public bool ItsPrintP { get; set; }
         public bool Extra { get; set; }
 

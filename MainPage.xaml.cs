@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.IO;
 
+
 namespace CashPlace;
 
 public partial class MainPage : ContentPage
@@ -14,10 +15,75 @@ public partial class MainPage : ContentPage
     }
 
     // ★ ВЫЗЫВАЕМ ПРОВЕРКУ ПОСЛЕ ОТРИСОВКИ СТРАНИЦЫ ★
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-        _ = CheckDatabaseStateAsync(); 
+        await CheckDatabaseStateAsync();
+        
+        // ★ Автоматическая проверка при старте (только если настройки введены) ★
+        if (WorkLayout.IsVisible)
+        {
+            await PerformUpdateCheck(false);
+        }
+    }
+    
+    // ★ Метод проверки обновлений ★
+    // ★ Метод проверки обновлений ★
+    private async Task PerformUpdateCheck(bool showMessageBoxIfNoUpdate)
+    {
+        try
+        {
+            CheckUpdateBtn.Text = "Проверка...";
+            CheckUpdateBtn.IsEnabled = false;
+
+            // Теперь метод возвращает bool? (true, false или null)
+            bool? updateStatus = await AppUpdater.CheckAndDownloadUpdateAsync();
+
+            if (updateStatus == true)
+            {
+                // Обновление скачалось, показываем кнопку "Установить"
+                UpdateBtn.IsVisible = true;
+            }
+            else if (updateStatus == false)
+            {
+                // Сервер ответил, что обновлений нет
+                UpdateBtn.IsVisible = false;
+                if (showMessageBoxIfNoUpdate)
+                {
+                    await DisplayAlert("Обновления", "У вас установлена последняя версия программы.", "OK");
+                }
+            }
+            else // updateStatus == null
+            {
+                // Произошла ошибка связи с сервером
+                UpdateBtn.IsVisible = false;
+                if (showMessageBoxIfNoUpdate)
+                {
+                    await DisplayAlert("Ошибка", "Не удалось связаться с сервером обновлений. Проверьте интернет-соединение или настройки.", "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Update check failed: {ex.Message}");
+        }
+        finally
+        {
+            CheckUpdateBtn.Text = "Проверить обновления";
+            CheckUpdateBtn.IsEnabled = true;
+        }
+    }
+
+    // ★ Обработчик кнопки "Проверить обновления" ★
+    private async void OnCheckUpdateClicked(object sender, EventArgs e)
+    {
+        await PerformUpdateCheck(true);
+    }
+
+    // ★ Обработчик кнопки "Установить обновление" ★
+    private void OnInstallUpdateClicked(object sender, EventArgs e)
+    {
+        AppUpdater.InstallDownloadedUpdate();
     }
 
     private async Task CheckDatabaseStateAsync()
@@ -42,6 +108,7 @@ public partial class MainPage : ContentPage
                 
                 SetupLayout.IsVisible = false;
                 WorkLayout.IsVisible = true;
+                VersionLabel.Text = $"Версия: {MainStaticClass.GetProductVersion()}";
             }
             else
             {
@@ -54,6 +121,18 @@ public partial class MainPage : ContentPage
         {
             await DisplayAlert("Ошибка БД", ex.Message, "OK");
         }
+    }
+    
+    private async void OnScanClicked(object sender, EventArgs e)
+    {
+        // Открываем страницу сканера
+        var scannerPage = new ScannerPage(async (result) =>
+        {
+            // Когда код отсканирован, вставляем его в текстовое поле
+            QrCodeEntry.Text = result;
+        });
+
+        await Navigation.PushModalAsync(scannerPage);
     }
 
     private async void OnSaveSettingsClicked(object sender, EventArgs e)

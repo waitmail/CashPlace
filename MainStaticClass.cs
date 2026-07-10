@@ -40,6 +40,14 @@ public class MainStaticClass
             return _pathForWebServiceUrls;
         }
     }
+    
+    public static int  CashDeskNumber
+    {
+        get
+        {
+            return 10;
+        }
+    }
 
     private static string[] GetPathForWebService()
     {
@@ -202,24 +210,23 @@ public class MainStaticClass
     {
         try
         {
-            // AppInfo.Current.VersionString возвращает версию из AndroidManifest.xml 
-            // (или из .csproj файла, например "1.0.0")
             string version = AppInfo.Current.VersionString;
-
-            // Если версия по какой-то причине пустая, возвращаем Unix-время как фоллбэк
+        
+            // Если версия пустая, возвращаем 0.0.0 (а не Unix время)
             if (string.IsNullOrEmpty(version))
             {
-                return DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                return "0.0.0";
             }
 
             return version;
         }
         catch
         {
-            // Если произошла какая-то ошибка при доступе к AppInfo
-            return DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+            // Если произошла ошибка, тоже возвращаем 0.0.0
+            return "0.0.0";
         }
     }
+    
 
     /// <summary>
     /// Потокобезопасный показ диалогового окна

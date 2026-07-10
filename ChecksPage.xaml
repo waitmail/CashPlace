@@ -4,59 +4,64 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:CashPlace"
              Title="Чеки"
-             Padding="10"> <!-- ✅ Добавлен отступ, чтобы ничего не уезжало под края экрана -->
-             
-    <Grid RowDefinitions="Auto, *, Auto">
-        
-        <!-- Панель управления сверху -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Padding="0,0,0,10">
-            <DatePicker Grid.Column="0" x:Name="datePicker" Format="dd.MM.yyyy" Date="{Binding SelectedDate}" />
-            <CheckBox Grid.Column="1" x:Name="checkBox_show_3_last_checks" VerticalOptions="Center" />
-            <Label Grid.Column="1" Text="Посл. 3" VerticalOptions="Center" Margin="30,0,0,0" />
-            <Button Grid.Column="2" Text="Обновить" Clicked="OnRefreshClicked" Margin="10,0,0,0" />
+             Padding="10"> 
+
+    <!-- ★ ДОБАВЛЕНО: Обертка для прокрутки ★ -->
+    <ScrollView>
+        <Grid RowDefinitions="Auto, *, Auto">
+            
+            <!-- Панель управления сверху -->
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Padding="0,0,0,10">
+                <DatePicker Grid.Column="0" x:Name="datePicker" Format="dd.MM.yyyy" Date="{Binding SelectedDate}" />
+                <CheckBox Grid.Column="1" x:Name="checkBox_show_3_last_checks" VerticalOptions="Center" />
+                <Label Grid.Column="1" Text="Посл. 3" VerticalOptions="Center" Margin="30,0,0,0" />
+                <Button Grid.Column="2" Text="Обновить" Clicked="OnRefreshClicked" Margin="10,0,0,0" />
+            </Grid>
+
+            <!-- Список чеков -->
+            <CollectionView Grid.Row="1" x:Name="ChecksCollectionView" ItemsSource="{Binding CheckItems}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="views:CheckItem">
+                        <Frame Margin="5" Padding="10" BorderColor="LightGray" HasShadow="True">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnCheckItemTapped" />
+                            </Frame.GestureRecognizers>
+                            
+                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding DocumentNumber}" FontAttributes="Bold" FontSize="16" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding CheckType}" TextColor="Blue" />
+                                
+                                <Label Grid.Row="1" Grid.Column="0" Text="{Binding ClientName}" TextColor="DarkGray" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding FormattedCash}" FontAttributes="Bold" />
+                                
+                                <Label Grid.Row="2" Grid.Column="0" Text="{Binding FormattedDate}" TextColor="Gray" FontSize="Micro" />
+                                <Label Grid.Row="2" 
+                                       Grid.Column="1" 
+                                       Text="✓ Выгружено" 
+                                       TextColor="Green" 
+                                       FontSize="Micro" 
+                                       FontAttributes="Bold"
+                                       IsVisible="{Binding IsSent}" />
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            
+            <Label Grid.Row="1" x:Name="NoDataLabel" Text="Нет данных за выбранную дату" 
+                   IsVisible="False" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Gray" />
+
+            <!-- Кнопка создания нового чека -->
+            <Button Grid.Row="2" 
+                    Text="НОВЫЙ ЧЕК" 
+                    BackgroundColor="#FF2196F3" 
+                    TextColor="White"
+                    FontSize="20" 
+                    FontAttributes="Bold"
+                    Margin="0,10,0,0" 
+                    HeightRequest="60"
+                    Clicked="OnNewCheckClicked" />
+                    
         </Grid>
-
-        <!-- Список чеков (убраны SelectionMode и SelectionChanged) -->
-        <CollectionView Grid.Row="1" x:Name="ChecksCollectionView" 
-                        ItemsSource="{Binding CheckItems}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="views:CheckItem">
-                    
-                    <!-- Добавляем GestureRecognizers для обработки нажатия -->
-                    <Frame Margin="5" Padding="10" BorderColor="LightGray" HasShadow="True">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnCheckItemTapped" />
-                        </Frame.GestureRecognizers>
-                        
-                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto">
-                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding DocumentNumber}" FontAttributes="Bold" FontSize="16" />
-                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding CheckType}" TextColor="Blue" />
-                            
-                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding ClientName}" TextColor="DarkGray" />
-                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding FormattedCash}" FontAttributes="Bold" />
-                            
-                            <Label Grid.Row="2" Grid.Column="0" Text="{Binding FormattedDate}" TextColor="Gray" FontSize="Micro" />
-                        </Grid>
-                    </Frame>
-                    
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-        
-        <!-- Сообщение, если нет данных -->
-        <Label Grid.Row="1" x:Name="NoDataLabel" Text="Нет данных за выбранную дату" 
-               IsVisible="False" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Gray" />
-
-        <!-- Кнопка создания нового чека -->
-        <Button Grid.Row="2" 
-                Text="НОВЫЙ ЧЕК" 
-                BackgroundColor="#FF2196F3" 
-                TextColor="White"
-                FontSize="20" 
-                FontAttributes="Bold"
-                Margin="0,10,0,0" 
-                HeightRequest="60"
-                Clicked="OnNewCheckClicked" />
-                
-    </Grid>
+    </ScrollView>
 </ContentPage>

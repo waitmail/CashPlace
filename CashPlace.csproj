@@ -1,7 +1,7 @@
-ï»¿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <!-- âœ… ÐžÑÑ‚Ð°Ð²Ð»ÐµÐ½Ñ‹ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Android Ð¸ Windows -->
+        <!-- ? Îñòàâëåíû òîëüêî Android è Windows -->
         <TargetFrameworks>net8.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
         <OutputType>Exe</OutputType>
         <RootNamespace>CashPlace</RootNamespace>
@@ -10,13 +10,13 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 		
-		 <!-- âœ… ÐŸÑƒÑ‚ÑŒ Ðº Android SDK -->
+		 <!-- ? Ïóòü ê Android SDK -->
         <AndroidSdkDirectory>C:\Users\User\AppData\Local\Android\Sdk</AndroidSdkDirectory>
         
-        <!-- âœ… ÐŸÑƒÑ‚ÑŒ Ðº Java JDK -->
+        <!-- ? Ïóòü ê Java JDK -->
         <JavaSdkDirectory>D:\Program Files\Android\Android Studio\jbr</JavaSdkDirectory>
 
-        <!-- âœ… ÐŸÐ Ð˜ÐÐ˜ÐœÐÐ•Ðœ Ð›Ð˜Ð¦Ð•ÐÐ—Ð˜Ð˜ ANDROID -->
+        <!-- ? ÏÐÈÍÈÌÀÅÌ ËÈÖÅÍÇÈÈ ANDROID -->
         <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>
 
 
@@ -27,10 +27,10 @@
         <ApplicationId>com.yourname.cash8mobile</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>1</ApplicationVersion>
+        <ApplicationDisplayVersion>1.0.37</ApplicationDisplayVersion>
+        <ApplicationVersion>37</ApplicationVersion>
 
-        <!-- ÐœÐ¸Ð½Ð¸Ð¼Ð°Ð»ÑŒÐ½Ñ‹Ðµ Ð²ÐµÑ€ÑÐ¸Ð¸ Ð¿Ð»Ð°Ñ‚Ñ„Ð¾Ñ€Ð¼ -->
+        <!-- Ìèíèìàëüíûå âåðñèè ïëàòôîðì -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
@@ -60,6 +60,19 @@
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+        <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Platforms\Android\xml\file_paths.xml" />
+      <AndroidResource Include="Platforms\Android\xml\file_paths.xml" />
     </ItemGroup>
 
 </Project>
+
+
+
+
+
+
+
