@@ -28,7 +28,6 @@ public partial class MainPage : ContentPage
     }
     
     // ★ Метод проверки обновлений ★
-    // ★ Метод проверки обновлений ★
     private async Task PerformUpdateCheck(bool showMessageBoxIfNoUpdate)
     {
         try
@@ -36,17 +35,22 @@ public partial class MainPage : ContentPage
             CheckUpdateBtn.Text = "Проверка...";
             CheckUpdateBtn.IsEnabled = false;
 
-            // Теперь метод возвращает bool? (true, false или null)
-            bool? updateStatus = await AppUpdater.CheckAndDownloadUpdateAsync();
+            // ★ СОЗДАЕМ ОБРАБОТЧИК ПРОГРЕССА ★
+            // Он будет менять текст кнопки, когда AppUpdater пришлет статус
+            var progress = new Progress<string>(status =>
+            {
+                CheckUpdateBtn.Text = status; // Текст поменяется на "Скачивание APK..."
+            });
+
+            // Передаем progress в метод
+            bool? updateStatus = await AppUpdater.CheckAndDownloadUpdateAsync(progress);
 
             if (updateStatus == true)
             {
-                // Обновление скачалось, показываем кнопку "Установить"
                 UpdateBtn.IsVisible = true;
             }
             else if (updateStatus == false)
             {
-                // Сервер ответил, что обновлений нет
                 UpdateBtn.IsVisible = false;
                 if (showMessageBoxIfNoUpdate)
                 {
@@ -55,11 +59,10 @@ public partial class MainPage : ContentPage
             }
             else // updateStatus == null
             {
-                // Произошла ошибка связи с сервером
                 UpdateBtn.IsVisible = false;
                 if (showMessageBoxIfNoUpdate)
                 {
-                    await DisplayAlert("Ошибка", "Не удалось связаться с сервером обновлений. Проверьте интернет-соединение или настройки.", "OK");
+                    await DisplayAlert("Ошибка", "Не удалось связаться с сервером обновлений.", "OK");
                 }
             }
         }
@@ -69,6 +72,7 @@ public partial class MainPage : ContentPage
         }
         finally
         {
+            // Возвращаем кнопке стандартное имя
             CheckUpdateBtn.Text = "Проверить обновления";
             CheckUpdateBtn.IsEnabled = true;
         }

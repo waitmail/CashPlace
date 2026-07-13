@@ -40,25 +40,147 @@ public partial class LoadDataPage : ContentPage
 
         public void Dispose()
         {
-            ListTovar?.Clear(); ListBarcode?.Clear(); ListActionHeader?.Clear();
-            ListActionTable?.Clear(); ListCharacteristic?.Clear(); ListSertificate?.Clear();
-            ListPromoText?.Clear(); ListActionClients?.Clear();
-            ListTovar = null; ListBarcode = null; ListActionHeader = null; ListActionTable = null;
-            ListCharacteristic = null; ListSertificate = null; ListPromoText = null; ListActionClients = null;
+            ListTovar?.Clear();
+            ListBarcode?.Clear();
+            ListActionHeader?.Clear();
+            ListActionTable?.Clear();
+            ListCharacteristic?.Clear();
+            ListSertificate?.Clear();
+            ListPromoText?.Clear();
+            ListActionClients?.Clear();
+            ListTovar = null;
+            ListBarcode = null;
+            ListActionHeader = null;
+            ListActionTable = null;
+            ListCharacteristic = null;
+            ListSertificate = null;
+            ListPromoText = null;
+            ListActionClients = null;
         }
     }
 
-    public class Tovar { public string Code { get; set; } public string Name { get; set; } public string RetailPrice { get; set; } public string ItsDeleted { get; set; } public string Nds { get; set; } public string ItsCertificate { get; set; } public string PercentBonus { get; set; } public string TnVed { get; set; } public string ItsMarked { get; set; } public string ItsExcise { get; set; } public string CdnCheck { get; set; } public string Fractional { get; set; } public string RefusalOfMarking { get; set; } public string RrNotControlOwner { get; set; } }
-    public class Barcode { public string BarCode { get; set; } public string TovarCode { get; set; } }
-    public class ActionHeader { public string DateStarted { get; set; } public string DateEnd { get; set; } public string NumDoc { get; set; } public string Tip { get; set; } public string Barcode { get; set; } public string Persent { get; set; } public string sum { get; set; } public string sum1 { get; set; } public string Comment { get; set; } public string Marker { get; set; } public string ActionByDiscount { get; set; } public string TimeStart { get; set; } public string TimeEnd { get; set; } public string BonusPromotion { get; set; } public string WithOldPromotion { get; set; } public string Monday { get; set; } public string Tuesday { get; set; } public string Wednesday { get; set; } public string Thursday { get; set; } public string Friday { get; set; } public string Saturday { get; set; } public string Sunday { get; set; } public string PromoCode { get; set; } public string SumBonus { get; set; } public string ExecutionOrder { get; set; } public string GiftPrice { get; set; } public string Kind { get; set; } public string Picture { get; set; } }
-    public class ActionTable { public string NumDoc { get; set; } public string NumList { get; set; } public string CodeTovar { get; set; } public string Price { get; set; } }
-    public class Characteristic { public string CodeTovar { get; set; } public string Name { get; set; } public string Guid { get; set; } public string RetailPrice { get; set; } }
-    public class Sertificate { public string Code { get; set; } public string CodeTovar { get; set; } public string Rating { get; set; } public string IsActive { get; set; } }
-    public class PromoText { public string AdvertisementText { get; set; } public string NumStr { get; set; } public string Picture { get; set; } }
-    public class ActionClients { public string NumDoc { get; set; } public string CodeClient { get; set; } }
-    public class Client { public string code { get; set; } public string phone { get; set; } public string name { get; set; } public string holiday { get; set; } public string use_blocked { get; set; } public string reason_for_blocking { get; set; } public string notify_security { get; set; } public string datetime_update { get; set; } }
-    public class Clients { public List<Client> list_clients { get; set; } }
-    public class QueryPacketData : IDisposable { public string Version { get; set; } public string NickShop { get; set; } public string CodeShop { get; set; } public string LastDateDownloadTovar { get; set; } public string NumCash { get; set; } public void Dispose() { } }
+    public class Tovar
+    {
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string RetailPrice { get; set; }
+        public string ItsDeleted { get; set; }
+        public string Nds { get; set; }
+        public string ItsCertificate { get; set; }
+        public string PercentBonus { get; set; }
+        public string TnVed { get; set; }
+        public string ItsMarked { get; set; }
+        public string ItsExcise { get; set; }
+        public string CdnCheck { get; set; }
+        public string Fractional { get; set; }
+        public string RefusalOfMarking { get; set; }
+        public string RrNotControlOwner { get; set; }
+    }
+
+    public class Barcode
+    {
+        public string BarCode { get; set; }
+        public string TovarCode { get; set; }
+    }
+
+    public class ActionHeader
+    {
+        public string DateStarted { get; set; }
+        public string DateEnd { get; set; }
+        public string NumDoc { get; set; }
+        public string Tip { get; set; }
+        public string Barcode { get; set; }
+        public string Persent { get; set; }
+        public string sum { get; set; }
+        public string sum1 { get; set; }
+        public string Comment { get; set; }
+        public string Marker { get; set; }
+        public string ActionByDiscount { get; set; }
+        public string TimeStart { get; set; }
+        public string TimeEnd { get; set; }
+        public string BonusPromotion { get; set; }
+        public string WithOldPromotion { get; set; }
+        public string Monday { get; set; }
+        public string Tuesday { get; set; }
+        public string Wednesday { get; set; }
+        public string Thursday { get; set; }
+        public string Friday { get; set; }
+        public string Saturday { get; set; }
+        public string Sunday { get; set; }
+        public string PromoCode { get; set; }
+        public string SumBonus { get; set; }
+        public string ExecutionOrder { get; set; }
+        public string GiftPrice { get; set; }
+        public string Kind { get; set; }
+        public string Picture { get; set; }
+    }
+
+    public class ActionTable
+    {
+        public string NumDoc { get; set; }
+        public string NumList { get; set; }
+        public string CodeTovar { get; set; }
+        public string Price { get; set; }
+    }
+
+    public class Characteristic
+    {
+        public string CodeTovar { get; set; }
+        public string Name { get; set; }
+        public string Guid { get; set; }
+        public string RetailPrice { get; set; }
+    }
+
+    public class Sertificate
+    {
+        public string Code { get; set; }
+        public string CodeTovar { get; set; }
+        public string Rating { get; set; }
+        public string IsActive { get; set; }
+    }
+
+    public class PromoText
+    {
+        public string AdvertisementText { get; set; }
+        public string NumStr { get; set; }
+        public string Picture { get; set; }
+    }
+
+    public class ActionClients
+    {
+        public string NumDoc { get; set; }
+        public string CodeClient { get; set; }
+    }
+
+    public class Client
+    {
+        public string code { get; set; }
+        public string phone { get; set; }
+        public string name { get; set; }
+        public string holiday { get; set; }
+        public string use_blocked { get; set; }
+        public string reason_for_blocking { get; set; }
+        public string notify_security { get; set; }
+        public string datetime_update { get; set; }
+    }
+
+    public class Clients
+    {
+        public List<Client> list_clients { get; set; }
+    }
+
+    public class QueryPacketData : IDisposable
+    {
+        public string Version { get; set; }
+        public string NickShop { get; set; }
+        public string CodeShop { get; set; }
+        public string LastDateDownloadTovar { get; set; }
+        public string NumCash { get; set; }
+
+        public void Dispose()
+        {
+        }
+    }
 
     #endregion
 
@@ -70,36 +192,36 @@ public partial class LoadDataPage : ContentPage
         UpdateLastSyncDate();
         UpdateLastUploadDate();
     }
-    
-        // ★ НОВЫЙ МЕТОД: Читает время последней выгрузки из памяти планшета ★
-        private void UpdateLastUploadDate()
+
+    // ★ НОВЫЙ МЕТОД: Читает время последней выгрузки из памяти планшета ★
+    private void UpdateLastUploadDate()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            // Читаем сохраненное время выгрузки (если нет, возвращаем пустую строку)
+            string savedDate = Preferences.Get("last_upload_time", "");
+
+            if (DateTime.TryParse(savedDate, out DateTime lastDate))
             {
-                // Читаем сохраненное время выгрузки (если нет, возвращаем пустую строку)
-                string savedDate = Preferences.Get("last_upload_time", "");
+                LastUploadText.Text = $"Последняя выгрузка: {lastDate:dd.MM.yyyy HH:mm}";
+            }
+            else
+            {
+                LastUploadText.Text = "Последняя выгрузка: данных еще нет";
+            }
+        });
+    }
 
-                if (DateTime.TryParse(savedDate, out DateTime lastDate))
-                {
-                    LastUploadText.Text = $"Последняя выгрузка: {lastDate:dd.MM.yyyy HH:mm}";
-                }
-                else
-                {
-                    LastUploadText.Text = "Последняя выгрузка: данных еще нет";
-                }
-            });
-        }
+    private void InitializeDatabase()
+    {
+        using var conn = new SqliteConnection($"Data Source={DbPath}");
+        conn.Open();
 
-        private void InitializeDatabase()
-{
-    using var conn = new SqliteConnection($"Data Source={DbPath}");
-    conn.Open();
-    
-    // ОТКЛЮЧАЕМ WAL (чтобы база была в одном файле и легко читалась на ПК)
-    using var pragmaCmd = new SqliteCommand("PRAGMA journal_mode=DELETE;", conn);
-    pragmaCmd.ExecuteNonQuery();
+        // ОТКЛЮЧАЕМ WAL (чтобы база была в одном файле и легко читалась на ПК)
+        using var pragmaCmd = new SqliteCommand("PRAGMA journal_mode=DELETE;", conn);
+        pragmaCmd.ExecuteNonQuery();
 
-    string sql = @"
+        string sql = @"
         CREATE TABLE IF NOT EXISTS tovar (code INTEGER PRIMARY KEY, name TEXT, retail_price REAL, its_deleted INTEGER, nds INTEGER, its_certificate INTEGER, percent_bonus REAL, tnved TEXT, its_marked INTEGER, its_excise INTEGER, cdn_check INTEGER, fractional INTEGER, refusal_of_marking INTEGER, rr_not_control_owner INTEGER);
         CREATE TABLE IF NOT EXISTS tovar2 (code INTEGER PRIMARY KEY, name TEXT, retail_price REAL, its_deleted INTEGER, nds INTEGER, its_certificate INTEGER, percent_bonus REAL, tnved TEXT, its_marked INTEGER, its_excise INTEGER, cdn_check INTEGER, fractional INTEGER, refusal_of_marking INTEGER, rr_not_control_owner INTEGER);
         CREATE TABLE IF NOT EXISTS barcode (tovar_code INTEGER, barcode TEXT);
@@ -145,9 +267,9 @@ public partial class LoadDataPage : ContentPage
             item_marker TEXT     
         );
     ";
-    using var cmd = new SqliteCommand(sql, conn);
-    cmd.ExecuteNonQuery();
-}
+        using var cmd = new SqliteCommand(sql, conn);
+        cmd.ExecuteNonQuery();
+    }
 
     // private void InitializeConstants()
     // {
@@ -228,9 +350,18 @@ public partial class LoadDataPage : ContentPage
 
             var loadTask = Task.Run(async () =>
             {
-                try { return await PerformFullLoadAsync(_cancellationTokenSource.Token); }
-                catch (OperationCanceledException) { return (false, "Операция отменена пользователем"); }
-                catch (Exception ex) { return (false, $"Ошибка при выполнении загрузки: {ex.Message}"); }
+                try
+                {
+                    return await PerformFullLoadAsync(_cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return (false, "Операция отменена пользователем");
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Ошибка при выполнении загрузки: {ex.Message}");
+                }
             }, _cancellationTokenSource.Token);
 
             var timeoutTask = Task.Delay(_loadTimeout, _cancellationTokenSource.Token);
@@ -271,7 +402,12 @@ public partial class LoadDataPage : ContentPage
             WorkHintText.IsVisible = isLoading;
             TimeInfoText.IsVisible = isLoading;
             if (isLoading) TimeInfoText.Text = "Время загрузки: 00:00";
-            else { ProgressBar1.Progress = 0; StatusText.Text = ""; ProgressPercent.Text = "0%"; }
+            else
+            {
+                ProgressBar1.Progress = 0;
+                StatusText.Text = "";
+                ProgressPercent.Text = "0%";
+            }
         });
     }
 
@@ -304,6 +440,7 @@ public partial class LoadDataPage : ContentPage
     }
 
     #region Таймер
+
     private void StartTimer()
     {
         _timer = new Timer(_ =>
@@ -318,36 +455,42 @@ public partial class LoadDataPage : ContentPage
 
     private void StopTimer()
     {
-        _timer?.Dispose(); _timer = null;
+        _timer?.Dispose();
+        _timer = null;
         if (_stopwatch != null)
         {
             _stopwatch.Stop();
             MainThread.BeginInvokeOnMainThread(() => TimeInfoText.Text = $"Общее время: {_stopwatch.Elapsed:mm\\:ss}");
         }
     }
+
     #endregion
 
     #region Методы загрузки и БД (Адаптировано для SQLite)
 
-    private async Task<bool> CheckServiceAvailabilityAsync(CancellationToken ct) => await Task.Run(() => MainStaticClass.ServiceIsWorkerAsync(), ct);
+    private async Task<bool> CheckServiceAvailabilityAsync(CancellationToken ct) =>
+        await Task.Run(() => MainStaticClass.ServiceIsWorkerAsync(), ct);
 
-    private async Task<(bool success, LoadPacketData data, string errorMessage)> GetDataFromServerAsync(CancellationToken ct)
+    private async Task<(bool success, LoadPacketData data, string errorMessage)> GetDataFromServerAsync(
+        CancellationToken ct)
     {
         try
         {
             string nick_shop = MainStaticClass.Nick_Shop?.Trim();
             string code_shop = MainStaticClass.Code_Shop?.Trim();
-            if (string.IsNullOrEmpty(nick_shop) || string.IsNullOrEmpty(code_shop)) return (false, null, "Нет настроек магазина");
+            if (string.IsNullOrEmpty(nick_shop) || string.IsNullOrEmpty(code_shop))
+                return (false, null, "Нет настроек магазина");
 
             string key = nick_shop + CryptorEngine.GetCountDay() + code_shop;
             using var queryPacketData = new QueryPacketData();
             queryPacketData.NickShop = nick_shop;
             queryPacketData.CodeShop = code_shop;
             queryPacketData.LastDateDownloadTovar = last_date_download_tovars().ToString("dd-MM-yyyy");
-            queryPacketData.NumCash = "10";//MainStaticClass.CashDeskNumber.ToString();
+            queryPacketData.NumCash = "10"; //MainStaticClass.CashDeskNumber.ToString();
             queryPacketData.Version = MainStaticClass.GetProductVersion().Replace(".", "");
 
-            string data = JsonConvert.SerializeObject(queryPacketData, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            string data = JsonConvert.SerializeObject(queryPacketData, Formatting.Indented,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             string data_encrypt = CryptorEngine.Encrypt(data, true, key);
 
             var loadPacketData = await getLoadPacketDataFullAsync(nick_shop, data_encrypt, key);
@@ -357,7 +500,10 @@ public partial class LoadDataPage : ContentPage
 
             return (true, loadPacketData, "");
         }
-        catch (Exception ex) { return (false, null, ex.Message); }
+        catch (Exception ex)
+        {
+            return (false, null, ex.Message);
+        }
     }
 
     private async Task<LoadPacketData> getLoadPacketDataFullAsync(string nick_shop, string data_encrypt, string key)
@@ -365,14 +511,20 @@ public partial class LoadDataPage : ContentPage
         var loadPacketData = new LoadPacketData { PacketIsFull = false };
         try
         {
-            DS ds = await ServiceLocator.DsAsync(); ds.Timeout = 60000;
+            DS ds = await ServiceLocator.DsAsync();
+            ds.Timeout = 60000;
             //byte[] result_query_byte = await ds.GetDataForCasheV8JsonAvalonAsync(nick_shop, data_encrypt, MainStaticClass.GetWorkSchema.ToString());
             byte[] result_query_byte = await ds.GetDataForCasheV8JsonAvalonAsync(nick_shop, data_encrypt, "10");
             string result_query = DecompressString(result_query_byte);
             string decrypt_data = CryptorEngine.Decrypt(result_query, true, key);
             loadPacketData = JsonConvert.DeserializeObject<LoadPacketData>(decrypt_data);
         }
-        catch (Exception ex) { await ServiceLocator.ResetDsCacheAsync(); loadPacketData.Exception = ex.Message; }
+        catch (Exception ex)
+        {
+            await ServiceLocator.ResetDsCacheAsync();
+            loadPacketData.Exception = ex.Message;
+        }
+
         return loadPacketData;
     }
 
@@ -380,12 +532,14 @@ public partial class LoadDataPage : ContentPage
     {
         if (value == null || value.Length == 0) return "";
         using MemoryStream stream = new MemoryStream(value);
-        using System.IO.Compression.GZipStream zip = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress);
+        using System.IO.Compression.GZipStream zip =
+            new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress);
         using StreamReader reader = new StreamReader(zip);
         return reader.ReadToEnd();
     }
 
-    private async Task<(bool success, string errorMessage)> SaveDataToDatabaseAsync(LoadPacketData loadData, CancellationToken ct, int startProgress, int endProgress)
+    private async Task<(bool success, string errorMessage)> SaveDataToDatabaseAsync(LoadPacketData loadData,
+        CancellationToken ct, int startProgress, int endProgress)
     {
         using var conn = new SqliteConnection($"Data Source={DbPath}");
         await conn.OpenAsync(ct);
@@ -394,7 +548,9 @@ public partial class LoadDataPage : ContentPage
         try
         {
             // Очистка таблиц
-            await ExecNonQueryAsync("DELETE FROM action_table; DELETE FROM action_header; DELETE FROM advertisement; DELETE FROM action_clients;", conn, tran, ct);
+            await ExecNonQueryAsync(
+                "DELETE FROM action_table; DELETE FROM action_header; DELETE FROM advertisement; DELETE FROM action_clients;",
+                conn, tran, ct);
 
             // if (!string.IsNullOrEmpty(loadData.TokenMark))
             //     await ExecNonQueryAsync($"UPDATE constants SET cdn_token='{EscapeSql(loadData.TokenMark)}'", conn, tran, ct);
@@ -473,7 +629,8 @@ public partial class LoadDataPage : ContentPage
                 await ExecNonQueryAsync("DELETE FROM sertificates;", conn, tran, ct);
                 foreach (var s in loadData.ListSertificate)
                 {
-                    string sql = "INSERT INTO sertificates (code, code_tovar, rating, is_active) VALUES (@code, @tovar, @rating, @active)";
+                    string sql =
+                        "INSERT INTO sertificates (code, code_tovar, rating, is_active) VALUES (@code, @tovar, @rating, @active)";
                     using var cmd = new SqliteCommand(sql, conn, tran);
                     cmd.Parameters.AddWithValue("@code", long.TryParse(s.Code, out long c) ? c : 0);
                     cmd.Parameters.AddWithValue("@tovar", long.TryParse(s.CodeTovar, out long ct2) ? ct2 : 0);
@@ -487,19 +644,25 @@ public partial class LoadDataPage : ContentPage
             {
                 foreach (var ah in loadData.ListActionHeader)
                 {
-                    string sql = "INSERT INTO action_header (date_started, date_end, num_doc, tip, barcode, persent, sum, comment) VALUES (@ds, @de, @nd, @tip, @bar, @p, @sum, @com)";
+                    string sql =
+                        "INSERT INTO action_header (date_started, date_end, num_doc, tip, barcode, persent, sum, comment) VALUES (@ds, @de, @nd, @tip, @bar, @p, @sum, @com)";
                     using var cmd = new SqliteCommand(sql, conn, tran);
-                    cmd.Parameters.AddWithValue("@ds", ah.DateStarted ?? ""); cmd.Parameters.AddWithValue("@de", ah.DateEnd ?? "");
+                    cmd.Parameters.AddWithValue("@ds", ah.DateStarted ?? "");
+                    cmd.Parameters.AddWithValue("@de", ah.DateEnd ?? "");
                     cmd.Parameters.AddWithValue("@nd", int.TryParse(ah.NumDoc, out int nd) ? nd : 0);
                     cmd.Parameters.AddWithValue("@tip", int.TryParse(ah.Tip, out int tip) ? tip : 0);
-                    cmd.Parameters.AddWithValue("@bar", ah.Barcode ?? ""); cmd.Parameters.AddWithValue("@p", ah.Persent ?? "");
-                    cmd.Parameters.AddWithValue("@sum", ah.sum ?? ""); cmd.Parameters.AddWithValue("@com", ah.Comment ?? "");
+                    cmd.Parameters.AddWithValue("@bar", ah.Barcode ?? "");
+                    cmd.Parameters.AddWithValue("@p", ah.Persent ?? "");
+                    cmd.Parameters.AddWithValue("@sum", ah.sum ?? "");
+                    cmd.Parameters.AddWithValue("@com", ah.Comment ?? "");
                     await cmd.ExecuteNonQueryAsync(ct);
                 }
             }
 
             // Обновление даты
-            await ExecNonQueryAsync("UPDATE date_sync SET tovar = @date WHERE id=1; INSERT INTO date_sync (id, tovar) SELECT 1, @date WHERE (SELECT changes() = 0);", conn, tran, ct, ("@date", DateTime.Now.ToString("dd.MM.yyyy HH:mm")));
+            await ExecNonQueryAsync(
+                "UPDATE date_sync SET tovar = @date WHERE id=1; INSERT INTO date_sync (id, tovar) SELECT 1, @date WHERE (SELECT changes() = 0);",
+                conn, tran, ct, ("@date", DateTime.Now.ToString("dd.MM.yyyy HH:mm")));
 
             await tran.CommitAsync(ct);
             return (true, "");
@@ -511,7 +674,8 @@ public partial class LoadDataPage : ContentPage
         }
     }
 
-    private async Task ExecNonQueryAsync(string sql, SqliteConnection conn, SqliteTransaction tran, CancellationToken ct, params (string, object)[] pars)
+    private async Task ExecNonQueryAsync(string sql, SqliteConnection conn, SqliteTransaction tran,
+        CancellationToken ct, params (string, object)[] pars)
     {
         using var cmd = new SqliteCommand(sql, conn, tran);
         foreach (var p in pars) cmd.Parameters.AddWithValue(p.Item1, p.Item2);
@@ -530,11 +694,13 @@ public partial class LoadDataPage : ContentPage
     {
         try
         {
-            DS ds = await ServiceLocator.DsAsync(); ds.Timeout = 60000;
+            DS ds = await ServiceLocator.DsAsync();
+            ds.Timeout = 60000;
             string nick_shop = MainStaticClass.Nick_Shop.Trim();
             string code_shop = MainStaticClass.Code_Shop.Trim();
             string key = nick_shop + CryptorEngine.GetCountDay() + code_shop;
-            bool needToLoadMore = true; int portionNumber = 1;
+            bool needToLoadMore = true;
+            int portionNumber = 1;
 
             while (needToLoadMore)
             {
@@ -542,8 +708,15 @@ public partial class LoadDataPage : ContentPage
                 string data = CryptorEngine.Encrypt($"{nick_shop}|{dt.Ticks}|{code_shop}", true, key);
                 string result_query = "-1";
 
-                try { result_query = ds.GetDiscountClientsV8DateTime_NEW(nick_shop, data, "4"); }
-                catch (Exception ex) { if (show_message) await DisplayAlert("Ошибка", ex.Message, "OK"); break; }
+                try
+                {
+                    result_query = ds.GetDiscountClientsV8DateTime_NEW(nick_shop, data, "4");
+                }
+                catch (Exception ex)
+                {
+                    if (show_message) await DisplayAlert("Ошибка", ex.Message, "OK");
+                    break;
+                }
 
                 if (result_query == "-1") break;
 
@@ -560,13 +733,16 @@ public partial class LoadDataPage : ContentPage
                     foreach (var client in clients.list_clients)
                     {
                         // SQLite использует INSERT OR REPLACE вместо ON CONFLICT
-                        string sql = "INSERT OR REPLACE INTO clients (code, phone, name, date_of_birth, its_work, reason_for_blocking, notify_security, last_server_sync) " +
-                                     "VALUES (@code, @phone, @name, @dob, @work, @reason, @notify, @sync)";
+                        string sql =
+                            "INSERT OR REPLACE INTO clients (code, phone, name, date_of_birth, its_work, reason_for_blocking, notify_security, last_server_sync) " +
+                            "VALUES (@code, @phone, @name, @dob, @work, @reason, @notify, @sync)";
                         using var cmd = new SqliteCommand(sql, conn, tran);
                         cmd.Parameters.AddWithValue("@code", client.code ?? "");
                         cmd.Parameters.AddWithValue("@phone", client.phone ?? "");
-                        cmd.Parameters.AddWithValue("@name", string.IsNullOrWhiteSpace(client.name) ? client.phone : client.name);
-                        cmd.Parameters.AddWithValue("@dob", ParseDateForDb(client.holiday)?.ToString("yyyy-MM-dd") ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@name",
+                            string.IsNullOrWhiteSpace(client.name) ? client.phone : client.name);
+                        cmd.Parameters.AddWithValue("@dob",
+                            ParseDateForDb(client.holiday)?.ToString("yyyy-MM-dd") ?? (object)DBNull.Value);
                         //cmd.Parameters.AddWithValue("@dob", (object)ParseDateForDb(client.holiday) ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@work", ParseSmallint(client.use_blocked));
                         cmd.Parameters.AddWithValue("@reason", client.reason_for_blocking ?? "");
@@ -575,7 +751,8 @@ public partial class LoadDataPage : ContentPage
                         await cmd.ExecuteNonQueryAsync();
                     }
 
-                    string updateConstants = "UPDATE constants SET last_date_download_bonus_clients = @last_date WHERE rowid=1; INSERT INTO constants (last_date_download_bonus_clients) SELECT @last_date WHERE (SELECT changes() = 0);";
+                    string updateConstants =
+                        "UPDATE constants SET last_date_download_bonus_clients = @last_date WHERE rowid=1; INSERT INTO constants (last_date_download_bonus_clients) SELECT @last_date WHERE (SELECT changes() = 0);";
                     using var cmdConst = new SqliteCommand(updateConstants, conn, tran);
                     cmdConst.Parameters.AddWithValue("@last_date", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     await cmdConst.ExecuteNonQueryAsync();
@@ -592,13 +769,18 @@ public partial class LoadDataPage : ContentPage
                     break;
                 }
             }
+
             if (show_message) await DisplayAlert("Успех", "Загрузка клиентов завершена", "OK");
         }
-        catch (Exception ex) { Console.WriteLine($"Критическая ошибка: {ex}"); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Критическая ошибка: {ex}");
+        }
     }
 
-    private DateTime? ParseDateForDb(string dateStr) 
+    private DateTime? ParseDateForDb(string dateStr)
         => DateTime.TryParse(dateStr, out DateTime res) ? res.Date : (DateTime?)null;
+
     private object ParseSmallint(string val) => short.TryParse(val, out short s) ? s : (short)0;
 
     private DateTime last_date_download_bonus_clients()
@@ -611,7 +793,10 @@ public partial class LoadDataPage : ContentPage
             var res = cmd.ExecuteScalar()?.ToString();
             return DateTime.TryParse(res, out DateTime d) ? d : new DateTime(2000, 1, 1);
         }
-        catch { return new DateTime(2000, 1, 1); }
+        catch
+        {
+            return new DateTime(2000, 1, 1);
+        }
     }
 
     #endregion
@@ -630,7 +815,10 @@ public partial class LoadDataPage : ContentPage
             var res = cmd.ExecuteScalar()?.ToString();
             return DateTime.TryParse(res, out DateTime d) ? d : new DateTime(2000, 1, 1);
         }
-        catch { return new DateTime(2000, 1, 1); }
+        catch
+        {
+            return new DateTime(2000, 1, 1);
+        }
     }
 
     #endregion
@@ -642,7 +830,9 @@ public partial class LoadDataPage : ContentPage
         MainThread.BeginInvokeOnMainThread(() =>
         {
             DateTime lastDate = last_date_download_tovars();
-            LastUpdateText.Text = lastDate > new DateTime(2001, 1, 1) ? $"Последняя загрузка: {lastDate:dd.MM.yyyy HH:mm}" : "Последняя загрузка: данных еще нет";
+            LastUpdateText.Text = lastDate > new DateTime(2001, 1, 1)
+                ? $"Последняя загрузка: {lastDate:dd.MM.yyyy HH:mm}"
+                : "Последняя загрузка: данных еще нет";
         });
     }
 
@@ -677,10 +867,15 @@ public partial class LoadDataPage : ContentPage
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 bool cancel = await DisplayAlert("Подтверждение", "Идет загрузка. Отменить?", "Да", "Нет");
-                if (cancel) { _userCancelled = true; _cancellationTokenSource?.Cancel(); }
+                if (cancel)
+                {
+                    _userCancelled = true;
+                    _cancellationTokenSource?.Cancel();
+                }
             });
             return true; // Предотвращаем закрытие
         }
+
         return base.OnBackButtonPressed();
     }
 
@@ -705,7 +900,7 @@ public partial class LoadDataPage : ContentPage
 
             // ★ СОХРАНЯЕМ ВРЕМЯ ВЫГРУЗКИ В НАСТРОЙКИ ★
             Preferences.Set("last_upload_time", DateTime.Now.ToString());
-            
+
             // ★ ОБНОВЛЯЕМ НАДПИСЬ НА ЭКРАНЕ ★
             UpdateLastUploadDate();
 
@@ -723,20 +918,20 @@ public partial class LoadDataPage : ContentPage
     }
 
     private string FormatDateForServer(string dateString)
+    {
+        // Если строка пустая, возвращаем как есть
+        if (string.IsNullOrWhiteSpace(dateString)) return dateString;
+
+        // Пробуем распарсить дату (это сработает и для yyyy-MM-dd, и для dd.MM.yyyy)
+        if (DateTime.TryParse(dateString, out DateTime parsedDate))
         {
-            // Если строка пустая, возвращаем как есть
-            if (string.IsNullOrWhiteSpace(dateString)) return dateString;
-            
-            // Пробуем распарсить дату (это сработает и для yyyy-MM-dd, и для dd.MM.yyyy)
-            if (DateTime.TryParse(dateString, out DateTime parsedDate))
-            {
-                // Возвращаем в строгом формате дд.мм.гггг ЧЧ:мм:сс
-                return parsedDate.ToString("dd.MM.yyyy HH:mm:ss");
-            }
-            
-            // Если распарсить не удалось, возвращаем оригинал
-            return dateString;
+            // Возвращаем в строгом формате дд.мм.гггг ЧЧ:мм:сс
+            return parsedDate.ToString("dd.MM.yyyy HH:mm:ss");
         }
+
+        // Если распарсить не удалось, возвращаем оригинал
+        return dateString;
+    }
 
     private async Task UploadChecksAsync()
     {
@@ -816,20 +1011,20 @@ public partial class LoadDataPage : ContentPage
                             Discount =
                                 (GetSafeString("discount") == "" ? "0" : GetSafeString("discount")).Replace(",", "."),
                             Sum = (GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
-                            Sum_cash=(GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
+                            Sum_cash = (GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
                             Check_type = GetSafeString("check_type") == "" ? "0" : GetSafeString("check_type"),
                             // Date_time_start = GetSafeString("date_time_start"),
                             // Date_time_write = GetSafeString("date_time_write"),
                             Date_time_start = FormatDateForServer(GetSafeString("date_time_start")),
                             Date_time_write = FormatDateForServer(GetSafeString("date_time_write")),
-                            
+
                             Its_deleted = GetSafeString("its_deleted") == "" ? "0" : GetSafeString("its_deleted"),
                             Autor = GetSafeString("autor"),
                             Comment = GetSafeString("comment"),
                             // ✅ Безопасное чтение флагов печати
                             Its_print = (GetSafeInt("its_print") == 1 && GetSafeInt("its_print_p") == 1) ? "1" : "0",
 
-                            Extra = "1",//GetSafeString("extra") == "" ? "0" : GetSafeString("extra"),
+                            Extra = "1", //GetSafeString("extra") == "" ? "0" : GetSafeString("extra"),
                             Guid = GetSafeString("guid")
                         };
                         salesPortions.ListSalesPortionsHeader.Add(header);
@@ -884,7 +1079,7 @@ public partial class LoadDataPage : ContentPage
         try
         {
             result = ds.UploadDataOnSalesPortionJsonAvalon(MainStaticClass.Nick_Shop, data_crypt, "10");
-                //MainStaticClass.GetWorkSchema.ToString());
+            //MainStaticClass.GetWorkSchema.ToString());
         }
         catch (Exception ex)
         {

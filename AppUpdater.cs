@@ -14,7 +14,7 @@ namespace CashPlace;
 public class AppUpdater
 {
     // Метод 1: Проверяет сервер, скачивает APK (если нужно) и возвращает true, если обновление готово к установке
-    public static async Task<bool?> CheckAndDownloadUpdateAsync()
+    public static async Task<bool?> CheckAndDownloadUpdateAsync(IProgress<string> progress = null)
     {
         try
         {
@@ -33,12 +33,15 @@ public class AppUpdater
             string data = code_shop + "|" + local_version + "|" + code_shop;
             string encrypted_data = CryptorEngine.Encrypt(data, true, key);
 
-            // Вызываем метод вашего веб-сервиса (10 - схема для Android)
+            // ★ СООБЩАЕМ UI, ЧТО ИДЕМ ЗА ПОДТВЕРЖДЕНИЕМ НА СЕРВЕР ★
+            progress?.Report("Запрос к серверу...");
+
+            // Вызываем метод вашего веб-сервиса
             string encrypted_response = await Task.Run(() =>
                 ds.GetUpdateProgramAndroid(nick_shop, encrypted_data, "10")
             );
 
-            // ★ Если ответ пустой - значит ошибка авторизации или файл не найден на сервере
+            // Если ответ пустой - значит ошибка авторизации или файл не найден на сервере
             if (string.IsNullOrEmpty(encrypted_response)) return null;
 
             string decrypted_response = CryptorEngine.Decrypt(encrypted_response, true, key);
@@ -74,12 +77,16 @@ public class AppUpdater
                 if (downloadedVer == server_version) return true;
             }
 
+            // ★ СЕРВЕР ПРИСЛАЛ ФАЙЛ, НАЧИНАЕМ ИЗВЛЕКАТЬ И СОХРАНЯТЬ ЕГО ★
+            progress?.Report("Скачивание APK...");
+
             // Декодируем Base64 в байты APK файла
             byte[] apkBytes = Convert.FromBase64String(base64_file);
             if (apkBytes.Length < 1024) return false;
 
             // Сохраняем APK в кэш
             await File.WriteAllBytesAsync(tempApkPath, apkBytes);
+            
             File.WriteAllText(downloadedVerPath, parts[0]); // Запоминаем скачанную версию
 
             return true; // Файл скачан, готов к установке
