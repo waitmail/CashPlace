@@ -213,15 +213,15 @@ public partial class LoadDataPage : ContentPage
     }
 
     private void InitializeDatabase()
-    {
-        using var conn = new SqliteConnection($"Data Source={DbPath}");
-        conn.Open();
+{
+    using var conn = new SqliteConnection($"Data Source={DbPath}");
+    conn.Open();
 
-        // ОТКЛЮЧАЕМ WAL (чтобы база была в одном файле и легко читалась на ПК)
-        using var pragmaCmd = new SqliteCommand("PRAGMA journal_mode=DELETE;", conn);
-        pragmaCmd.ExecuteNonQuery();
+    // ОТКЛЮЧАЕМ WAL (чтобы база была в одном файле и легко читалась на ПК)
+    using var pragmaCmd = new SqliteCommand("PRAGMA journal_mode=DELETE;", conn);
+    pragmaCmd.ExecuteNonQuery();
 
-        string sql = @"
+    string sql = @"
         CREATE TABLE IF NOT EXISTS tovar (code INTEGER PRIMARY KEY, name TEXT, retail_price REAL, its_deleted INTEGER, nds INTEGER, its_certificate INTEGER, percent_bonus REAL, tnved TEXT, its_marked INTEGER, its_excise INTEGER, cdn_check INTEGER, fractional INTEGER, refusal_of_marking INTEGER, rr_not_control_owner INTEGER);
         CREATE TABLE IF NOT EXISTS tovar2 (code INTEGER PRIMARY KEY, name TEXT, retail_price REAL, its_deleted INTEGER, nds INTEGER, its_certificate INTEGER, percent_bonus REAL, tnved TEXT, its_marked INTEGER, its_excise INTEGER, cdn_check INTEGER, fractional INTEGER, refusal_of_marking INTEGER, rr_not_control_owner INTEGER);
         CREATE TABLE IF NOT EXISTS barcode (tovar_code INTEGER, barcode TEXT);
@@ -234,7 +234,7 @@ public partial class LoadDataPage : ContentPage
         CREATE TABLE IF NOT EXISTS date_sync (id INTEGER PRIMARY KEY, tovar TEXT, client TEXT);
         CREATE TABLE IF NOT EXISTS constants (code_shop TEXT, nick_shop TEXT, path_for_web_service TEXT, last_date_download_bonus_clients TEXT);
 
-            CREATE TABLE IF NOT EXISTS checks_header (
+        CREATE TABLE IF NOT EXISTS checks_header (
             document_number INTEGER PRIMARY KEY, 
             date_time_start TEXT, 
             date_time_write TEXT, 
@@ -251,7 +251,8 @@ public partial class LoadDataPage : ContentPage
             its_print_p INTEGER, 
             extra INTEGER,
             guid TEXT,           
-            is_sent INTEGER DEFAULT 0  
+            is_sent INTEGER DEFAULT 0,
+            pay_type INTEGER DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS checks_table (
@@ -264,62 +265,21 @@ public partial class LoadDataPage : ContentPage
             sum REAL, 
             sum_at_a_discount REAL,
             guid TEXT,           
-            item_marker TEXT     
+            item_marker TEXT,
+            action INTEGER DEFAULT 0,
+            gift INTEGER DEFAULT 0,
+            promo_description TEXT DEFAULT ''
         );
-    ";
-        using var cmd = new SqliteCommand(sql, conn);
-        cmd.ExecuteNonQuery();
-    }
 
-    // private void InitializeConstants()
-    // {
-    //     try
-    //     {
-    //         using var conn = new SqliteConnection($"Data Source={DbPath}");
-    //         conn.Open();
-    //
-    //         // 1. Проверяем, есть ли уже записи в таблице constants
-    //         string checkQuery = "SELECT COUNT(*) FROM constants;";
-    //         using var checkCmd = new SqliteCommand(checkQuery, conn);
-    //         long rowCount = (long)checkCmd.ExecuteScalar();
-    //
-    //         // 2. Если записей нет, делаем вставку
-    //         if (rowCount == 0)
-    //         {
-    //             // Задаем начальные значения
-    //             string defaultCodeShop = MainStaticClass.Code_Shop; //"181cdd69-5b7b-11e4-80d6-00e081e3d824";
-    //             string defaultNickShop = MainStaticClass.Nick_Shop; //"A05";
-    //
-    //             // Ваша строка с адресами через запятую
-    //             string rawUrls =
-    //                 "http://ch1.sd2.com.ru/DiscountSystem/ds.asmx,http://ch2.sd2.com.ru/DiscountSystem/ds.asmx,http://ch3.sd2.com.ru/DiscountSystem/ds.asmx";
-    //             //string rawUrls = "http://localhost:50520/DS.asmx";
-    //
-    //             // Разбиваем строку по запятой в массив string[]
-    //             // StringSplitOptions.RemoveEmptyEntries уберет пустые элементы, если вдруг две запятые подряд
-    //             string[] defaultUrls = rawUrls.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-    //
-    //             // Превращаем массив в JSON-строку: 
-    //             // ["http://ch1.sd2.com.ru/DiscountSystem/ds.asmx","http://ch2.sd2.com.ru/DiscountSystem/ds.asmx","http://ch3.sd2.com.ru/DiscountSystem/ds.asmx"]
-    //             string jsonUrls = JsonConvert.SerializeObject(defaultUrls);
-    //
-    //             string insertQuery =
-    //                 "INSERT INTO constants (code_shop, nick_shop, path_for_web_service) VALUES (@code_shop, @nick_shop, @path);";
-    //             using var insertCmd = new SqliteCommand(insertQuery, conn);
-    //
-    //             insertCmd.Parameters.AddWithValue("@code_shop", defaultCodeShop);
-    //             insertCmd.Parameters.AddWithValue("@nick_shop", defaultNickShop);
-    //             insertCmd.Parameters.AddWithValue("@path", jsonUrls); // Вставляем JSON
-    //
-    //             insertCmd.ExecuteNonQuery();
-    //             Debug.WriteLine("[DB] В таблицу constants добавлены значения по умолчанию.");
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Debug.WriteLine($"[DB] Ошибка при инициализации constants: {ex.Message}");
-    //     }
-    // }
+        CREATE INDEX IF NOT EXISTS idx_barcode_barcode ON barcode(barcode);
+        CREATE INDEX IF NOT EXISTS idx_action_table_num_doc ON action_table(num_doc);
+        CREATE INDEX IF NOT EXISTS idx_action_clients_num_doc ON action_clients(num_doc);        
+        CREATE INDEX IF NOT EXISTS idx_checks_table_doc ON checks_table(document_number);
+        CREATE INDEX IF NOT EXISTS idx_checks_header_date ON checks_header(date_time_write);
+    ";
+    using var cmd = new SqliteCommand(sql, conn);
+    cmd.ExecuteNonQuery();
+}
 
     private async void BtnLoad_Clicked(object sender, EventArgs e)
     {
@@ -429,6 +389,11 @@ public partial class LoadDataPage : ContentPage
             await UpdateProgressAsync("Завершение операций с базой данных...", 85);
             await FinalizeLoadAsync(ct);
 
+// >>> ДОБАВИТЬ: загрузка клиентов (скидки 5%)
+            // >>> Загрузка клиентов (скидки 5%) с отображением прогресса
+            await UpdateProgressAsync("Загрузка клиентов...", 90);
+            await load_bonus_clients(false, UpdateProgressAsync);
+// <<<
             await UpdateProgressAsync("Готово", 100);
             UpdateLastSyncDate();
             return (true, "");
@@ -602,10 +567,14 @@ public partial class LoadDataPage : ContentPage
                     cmd.Parameters["@tnved"].Value = t.TnVed ?? "";
                     cmd.Parameters["@marked"].Value = int.TryParse(t.ItsMarked, out int m) ? m : 0;
                     cmd.Parameters["@excise"].Value = int.TryParse(t.ItsExcise, out int e) ? e : 0;
-                    cmd.Parameters["@cdn"].Value = t.CdnCheck == "1" ? 1 : 0;
-                    cmd.Parameters["@frac"].Value = t.Fractional == "1" ? 1 : 0;
-                    cmd.Parameters["@refusal"].Value = t.RefusalOfMarking == "1" ? 1 : 0;
-                    cmd.Parameters["@rr"].Value = t.RrNotControlOwner == "1" ? 1 : 0;
+                    // cmd.Parameters["@cdn"].Value = t.CdnCheck == "1" ? 1 : 0;
+                    // cmd.Parameters["@frac"].Value = t.Fractional == "1" ? 1 : 0;
+                    // cmd.Parameters["@refusal"].Value = t.RefusalOfMarking == "1" ? 1 : 0;
+                    // cmd.Parameters["@rr"].Value = t.RrNotControlOwner == "1" ? 1 : 0;
+                    cmd.Parameters["@cdn"].Value = Flag(t.CdnCheck);
+                    cmd.Parameters["@frac"].Value = Flag(t.Fractional);
+                    cmd.Parameters["@refusal"].Value = Flag(t.RefusalOfMarking);
+                    cmd.Parameters["@rr"].Value = Flag(t.RrNotControlOwner);
 
                     await cmd.ExecuteNonQueryAsync(ct);
                 }
@@ -641,20 +610,117 @@ public partial class LoadDataPage : ContentPage
             }
 
             if (loadData.ListActionHeader?.Count > 0)
+{
+    string sql =
+        "INSERT INTO action_header (date_started, date_end, num_doc, tip, barcode, persent, sum, sum1, comment, marker, " +
+        "action_by_discount, time_start, time_end, bonus_promotion, with_old_promotion, " +
+        "monday, tuesday, wednesday, thursday, friday, saturday, sunday, " +
+        "promo_code, sum_bonus, execution_order, gift_price, kind, picture) " +
+        "VALUES (@ds, @de, @nd, @tip, @bar, @p, @sum, @sum1, @com, @marker, " +
+        "@abd, @ts, @te, @bp, @wop, @mon, @tue, @wed, @thu, @fri, @sat, @sun, " +
+        "@pc, @sb, @eo, @gp, @kind, @pic)";
+    using var cmd = new SqliteCommand(sql, conn, tran);
+
+    foreach (var p in new[] { "@ds", "@de", "@bar", "@com", "@ts", "@te", "@pc", "@pic" })
+        cmd.Parameters.Add(p, SqliteType.Text);
+    foreach (var p in new[] { "@nd", "@tip", "@marker", "@abd", "@bp", "@wop", "@mon", "@tue", "@wed", "@thu", "@fri", "@sat", "@sun", "@eo", "@kind" })
+        cmd.Parameters.Add(p, SqliteType.Integer);
+    foreach (var p in new[] { "@p", "@sum", "@sum1", "@sb", "@gp" })
+        cmd.Parameters.Add(p, SqliteType.Real);
+
+    // int Int(string v) => int.TryParse(v, out int i) ? i : 0;
+    // int Flag(string v) => v == "1" ? 1 : 0;
+    // decimal Dec(string v) => decimal.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal d) ? d : 0;
+
+    foreach (var ah in loadData.ListActionHeader)
+    {
+        if (ct.IsCancellationRequested) break;
+        cmd.Parameters["@ds"].Value = ah.DateStarted ?? "";
+        cmd.Parameters["@de"].Value = ah.DateEnd ?? "";
+        cmd.Parameters["@nd"].Value = Int(ah.NumDoc);
+        cmd.Parameters["@tip"].Value = Int(ah.Tip);
+        cmd.Parameters["@bar"].Value = ah.Barcode ?? "";
+        cmd.Parameters["@p"].Value = Dec(ah.Persent);
+        cmd.Parameters["@sum"].Value = Dec(ah.sum);
+        cmd.Parameters["@sum1"].Value = Dec(ah.sum1);
+        cmd.Parameters["@com"].Value = ah.Comment ?? "";
+        cmd.Parameters["@marker"].Value = Int(ah.Marker);
+        cmd.Parameters["@abd"].Value = Int(ah.ActionByDiscount);
+        cmd.Parameters["@ts"].Value = ah.TimeStart ?? "";
+        cmd.Parameters["@te"].Value = ah.TimeEnd ?? "";
+        cmd.Parameters["@bp"].Value = Int(ah.BonusPromotion);
+        cmd.Parameters["@wop"].Value = Int(ah.WithOldPromotion);
+        cmd.Parameters["@mon"].Value = Flag(ah.Monday);
+        cmd.Parameters["@tue"].Value = Flag(ah.Tuesday);
+        cmd.Parameters["@wed"].Value = Flag(ah.Wednesday);
+        cmd.Parameters["@thu"].Value = Flag(ah.Thursday);
+        cmd.Parameters["@fri"].Value = Flag(ah.Friday);
+        cmd.Parameters["@sat"].Value = Flag(ah.Saturday);
+        cmd.Parameters["@sun"].Value = Flag(ah.Sunday);
+        cmd.Parameters["@pc"].Value = ah.PromoCode ?? "";
+        cmd.Parameters["@sb"].Value = Dec(ah.SumBonus);
+        cmd.Parameters["@eo"].Value = Int(ah.ExecutionOrder);
+        cmd.Parameters["@gp"].Value = Dec(ah.GiftPrice);
+        cmd.Parameters["@kind"].Value = Int(ah.Kind);
+        cmd.Parameters["@pic"].Value = ah.Picture ?? "";
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+}
+
+// Табличная часть акций (товары в акциях)
+if (loadData.ListActionTable?.Count > 0)
+{
+    string sql = "INSERT INTO action_table (num_doc, num_list, code_tovar, price) VALUES (@nd, @nl, @ct, @p)";
+    using var cmd = new SqliteCommand(sql, conn, tran);
+    cmd.Parameters.Add("@nd", SqliteType.Integer);
+    cmd.Parameters.Add("@nl", SqliteType.Integer);
+    cmd.Parameters.Add("@ct", SqliteType.Integer);
+    cmd.Parameters.Add("@p", SqliteType.Real);
+
+    foreach (var at in loadData.ListActionTable)
+    {
+        if (ct.IsCancellationRequested) break;
+        cmd.Parameters["@nd"].Value = long.TryParse(at.NumDoc, out long nd) ? nd : 0;
+        cmd.Parameters["@nl"].Value = int.TryParse(at.NumList, out int nl) ? nl : 0;
+        cmd.Parameters["@ct"].Value = long.TryParse(at.CodeTovar, out long c) ? c : 0;
+        cmd.Parameters["@p"].Value = decimal.TryParse(at.Price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal pr) ? pr : 0;
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+}
+
+
+// Рекламные тексты
+            if (loadData.ListPromoText?.Count > 0)
             {
-                foreach (var ah in loadData.ListActionHeader)
+                string sql = "INSERT INTO advertisement (advertisement_text, num_str, picture) VALUES (@t, @ns, @pic)";
+                using var cmd = new SqliteCommand(sql, conn, tran);
+                cmd.Parameters.Add("@t", SqliteType.Text);
+                cmd.Parameters.Add("@ns", SqliteType.Integer);
+                cmd.Parameters.Add("@pic", SqliteType.Text);
+
+                foreach (var pt in loadData.ListPromoText)
                 {
-                    string sql =
-                        "INSERT INTO action_header (date_started, date_end, num_doc, tip, barcode, persent, sum, comment) VALUES (@ds, @de, @nd, @tip, @bar, @p, @sum, @com)";
-                    using var cmd = new SqliteCommand(sql, conn, tran);
-                    cmd.Parameters.AddWithValue("@ds", ah.DateStarted ?? "");
-                    cmd.Parameters.AddWithValue("@de", ah.DateEnd ?? "");
-                    cmd.Parameters.AddWithValue("@nd", int.TryParse(ah.NumDoc, out int nd) ? nd : 0);
-                    cmd.Parameters.AddWithValue("@tip", int.TryParse(ah.Tip, out int tip) ? tip : 0);
-                    cmd.Parameters.AddWithValue("@bar", ah.Barcode ?? "");
-                    cmd.Parameters.AddWithValue("@p", ah.Persent ?? "");
-                    cmd.Parameters.AddWithValue("@sum", ah.sum ?? "");
-                    cmd.Parameters.AddWithValue("@com", ah.Comment ?? "");
+                    if (ct.IsCancellationRequested) break;
+                    cmd.Parameters["@t"].Value = pt.AdvertisementText ?? "";
+                    cmd.Parameters["@ns"].Value = int.TryParse(pt.NumStr, out int ns) ? ns : 0;
+                    cmd.Parameters["@pic"].Value = pt.Picture ?? "";
+                    await cmd.ExecuteNonQueryAsync(ct);
+                }
+            }
+
+            // Клиенты, привязанные к акциям
+            if (loadData.ListActionClients?.Count > 0)
+            {
+                string sql = "INSERT INTO action_clients (num_doc, code_client) VALUES (@nd, @cc)";
+                using var cmd = new SqliteCommand(sql, conn, tran);
+                cmd.Parameters.Add("@nd", SqliteType.Integer);
+                cmd.Parameters.Add("@cc", SqliteType.Text);
+
+                foreach (var ac in loadData.ListActionClients)
+                {
+                    if (ct.IsCancellationRequested) break;
+                    cmd.Parameters["@nd"].Value = long.TryParse(ac.NumDoc, out long nd) ? nd : 0;
+                    cmd.Parameters["@cc"].Value = ac.CodeClient ?? "";
                     await cmd.ExecuteNonQueryAsync(ct);
                 }
             }
@@ -688,9 +754,10 @@ public partial class LoadDataPage : ContentPage
 
     #region Загрузка клиентов (load_bonus_clients)
 
-    public async Task load_bonus_clients(bool show_message) => await load_bonus_clients_internal(show_message);
+    public async Task load_bonus_clients(bool show_message, Func<string, int, Task> progress = null)
+        => await load_bonus_clients_internal(show_message, progress);
 
-    private async Task load_bonus_clients_internal(bool show_message)
+    private async Task load_bonus_clients_internal(bool show_message, Func<string, int, Task> progress)
     {
         try
         {
@@ -701,7 +768,8 @@ public partial class LoadDataPage : ContentPage
             string key = nick_shop + CryptorEngine.GetCountDay() + code_shop;
             bool needToLoadMore = true;
             int portionNumber = 1;
-
+            int totalLoaded = 0;
+            
             while (needToLoadMore)
             {
                 DateTime dt = last_date_download_bonus_clients();
@@ -751,13 +819,25 @@ public partial class LoadDataPage : ContentPage
                         await cmd.ExecuteNonQueryAsync();
                     }
 
+                    // Максимальная дата изменения в порции — курсор для следующего запроса (как на десктопе)
+                    DateTime maxDateInPortion = clients.list_clients
+                        .Where(c => !string.IsNullOrWhiteSpace(c.datetime_update))
+                        .Select(c => DateTime.TryParse(c.datetime_update, out var pd) ? pd : dt)
+                        .DefaultIfEmpty(dt)
+                        .Max();
+
                     string updateConstants =
-                        "UPDATE constants SET last_date_download_bonus_clients = @last_date WHERE rowid=1; INSERT INTO constants (last_date_download_bonus_clients) SELECT @last_date WHERE (SELECT changes() = 0);";
+                        "UPDATE constants SET last_date_download_bonus_clients = @last_date WHERE rowid=1; " +
+                        "INSERT INTO constants (last_date_download_bonus_clients) SELECT @last_date WHERE (SELECT changes() = 0);";
                     using var cmdConst = new SqliteCommand(updateConstants, conn, tran);
-                    cmdConst.Parameters.AddWithValue("@last_date", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                    cmdConst.Parameters.AddWithValue("@last_date", maxDateInPortion.ToString("O"));
                     await cmdConst.ExecuteNonQueryAsync();
 
                     await tran.CommitAsync();
+
+                    totalLoaded += clients.list_clients.Count;
+                    if (progress != null)
+                        await progress($"Загружено клиентов: {totalLoaded:N0}", Math.Min(90 + portionNumber, 99));
 
                     if (clients.list_clients.Count < 50000) needToLoadMore = false;
                     else portionNumber++;
@@ -805,6 +885,14 @@ public partial class LoadDataPage : ContentPage
 
     private string EscapeSql(string input) => string.IsNullOrEmpty(input) ? "" : input.Replace("'", "''");
 
+    private static int Int(string v) => int.TryParse(v, out int i) ? i : 0;
+
+    // Да/нет: сервер присылает "1" либо "true"/"True" — приводим к 0/1
+    private static int Flag(string v) =>
+        (v == "1" || string.Equals(v, "true", StringComparison.OrdinalIgnoreCase)) ? 1 : 0;
+
+    private static decimal Dec(string v) =>
+        decimal.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal d) ? d : 0;
     public DateTime last_date_download_tovars()
     {
         try

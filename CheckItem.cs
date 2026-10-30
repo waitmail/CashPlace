@@ -16,7 +16,10 @@ namespace CashPlace
         public bool IsSent { get; set; } 
         public bool ItsPrintP { get; set; }
         public bool Extra { get; set; }
-
+        
+        // ★ пометка удалённого чека и наличие причины в comment
+        public bool IsDeleted => ItsDeleted == 1;
+        public bool HasComment => !string.IsNullOrWhiteSpace(Comment);
 
         // Вспомогательные свойства для удобного отображения в XAML
         public string FormattedDate => DateTimeWrite.ToString("dd.MM.yyyy HH:mm");

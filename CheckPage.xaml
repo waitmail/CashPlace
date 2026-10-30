@@ -6,7 +6,7 @@
              x:Name="rootPage"
              Title="Чек">
              
-    <Grid RowDefinitions="Auto, Auto, *, Auto, Auto">
+    <Grid RowDefinitions="Auto, Auto, *, Auto, Auto, Auto">
         
         <!-- 1. Верхняя панель -->
         <Grid Grid.Row="0" ColumnDefinitions="*, *, *" Padding="10" BackgroundColor="#FF007ACC">
@@ -15,7 +15,7 @@
             <Label Grid.Column="2" x:Name="UserLabel" TextColor="White" HorizontalOptions="End"/>
         </Grid>
 
-        <!-- 2. Поле поиска товара и кнопка сканера -->
+        <!-- 2. Поле поиска товара, кнопка сканера и карта клиента -->
         <HorizontalStackLayout Grid.Row="1" Spacing="10" Margin="10">
             <Entry x:Name="SearchProductEntry" 
                    Placeholder="Отсканируйте штрихкод или код" 
@@ -24,40 +24,80 @@
                    Completed="SearchProductEntry_Completed"
                    WidthRequest="280"/>
 
-            <!-- ★ КНОПКА СКАНЕРА ★ -->
             <Button x:Name="ScanBtn" 
                     Text="📷" 
                     Clicked="OnScanClicked" 
                     WidthRequest="60" 
                     HeightRequest="50" 
                     VerticalOptions="Center" />
+
+            <!-- ★ КАРТА КЛИЕНТА ★ -->
+            <Entry x:Name="ClientEntry" 
+                   Placeholder="Карта клиента (телефон/код)" 
+                   Keyboard="Numeric"
+                   ReturnType="Done"
+                   Completed="ClientEntry_Completed"
+                   WidthRequest="240"/>
+
+            <!-- имя клиента (зелёная строка) — просто индикатор найденного клиента -->
+            <Label x:Name="ClientLabel" Text=""
+                   TextColor="DarkGreen" FontAttributes="Bold" FontSize="14"
+                   VerticalOptions="Center"/>
         </HorizontalStackLayout>
 
         <!-- 3. Список товаров -->
         <CollectionView Grid.Row="2" x:Name="ProductsCollectionView" 
                         ItemsSource="{Binding ProductsList}" 
-                        SelectionMode="Single"
+                        SelectionMode="None"
                         Margin="5">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="views:ProductItem">
                     <Frame Margin="5" Padding="10" BorderColor="LightGray" HasShadow="False">
                         <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto">
-                            
-                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Tovar}" FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
-                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding SumAtDiscount, StringFormat='{0:F2} ₽'}" FontSize="18" FontAttributes="Bold" TextColor="DarkBlue"/>
-                            
-                            <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="10" Margin="0,5,0,0">
-                                <!-- ✅ Кнопки блокируются, если это не новый чек -->
-                                <Button Text="-" WidthRequest="40" Clicked="OnDecreaseQuantity" 
+
+                            <!-- ★ наименование — теперь на ВСЮ ширину карточки, перенос по словам ★ -->
+                            <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Tovar}" FontSize="16"
+                                   FontAttributes="Bold" LineBreakMode="WordWrap"/>
+
+                            <!-- ★ СУММА — уехала вниз, на строку с кнопками, справа (выравнивание прежнее) ★ -->
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="0"
+                                                 VerticalOptions="Center">
+                                <Label Text="{Binding SumFull, StringFormat='{0:F2} ₽'}" FontSize="12"
+                                       TextColor="Gray" TextDecorations="Strikethrough"
+                                       HorizontalOptions="End" IsVisible="{Binding HasDiscount}"/>
+                                <Label Text="{Binding SumAtDiscount, StringFormat='{0:F2} ₽'}" FontSize="18"
+                                       FontAttributes="Bold" TextColor="DarkBlue" HorizontalOptions="End"/>
+                            </VerticalStackLayout>
+
+                            <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="10" Margin="0,5,0,0"
+                                                   VerticalOptions="Center">
+                                <Button Text="-" WidthRequest="40" Clicked="OnDecreaseQuantity"
                                         BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
-                                <Label Text="{Binding Quantity, StringFormat='Кол-во: {0}'}" VerticalOptions="Center" FontSize="16"/>
-                                <!-- ✅ Кнопки блокируются, если это не новый чек -->
-                                <Button Text="+" WidthRequest="40" Clicked="OnIncreaseQuantity" 
+                                <Label Text="{Binding Quantity, StringFormat='Кол-во: {0}'}" VerticalOptions="Center" FontSize="14"/>
+                                <Button Text="+" WidthRequest="40" Clicked="OnIncreaseQuantity"
+                                        BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+                                <Button Text="✕" WidthRequest="40" CornerRadius="8"
+                                        BackgroundColor="#FFEBEE" TextColor="#C62828" FontAttributes="Bold"
+                                        Clicked="OnDeleteProduct"
                                         BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
                             </HorizontalStackLayout>
-                            
-                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding PriceAtDiscount, StringFormat='Цена: {0:F2} ₽/шт'}" 
-                                   FontSize="14" TextColor="DarkGray" VerticalOptions="Center" HorizontalOptions="End"/>
+
+                            <HorizontalStackLayout Grid.Row="2" Grid.Column="1" Spacing="6"
+                                                   HorizontalOptions="End" VerticalOptions="Center">
+                                <Label Text="{Binding Price, StringFormat='{0:F2} ₽'}" FontSize="12"
+                                       TextColor="Gray" TextDecorations="Strikethrough"
+                                       VerticalOptions="Center" IsVisible="{Binding HasDiscount}"/>
+                                <Label Text="{Binding PriceAtDiscount, StringFormat='Цена: {0:F2} ₽/шт'}"
+                                       FontSize="14" TextColor="DarkGray"/>
+                            </HorizontalStackLayout>
+
+                            <!-- ★ комментарий акции (почему изменилась цена); пустой — не отображается ★ -->
+                            <Label Grid.Row="2" Grid.Column="0"
+                                   Text="{Binding PromoDescription}"
+                                   FontSize="12" FontAttributes="Italic"
+                                   TextColor="#E65100" LineBreakMode="WordWrap"
+                                   VerticalOptions="End"/>
+
                         </Grid>
                     </Frame>
                 </DataTemplate>
@@ -70,12 +110,43 @@
             <Label Grid.Column="1" x:Name="TotalSumLabel" Text="0.00 ₽" FontSize="24" FontAttributes="Bold" TextColor="DarkGreen"/>
         </Grid>
 
-        <!-- 5. Кнопка оплаты -->
-        <Button Grid.Row="4" x:Name="PayButton" Text="ОПЛАТА" 
-                BackgroundColor="#FF2196F3" TextColor="White" 
-                FontSize="20" FontAttributes="Bold" 
-                Margin="10" HeightRequest="60"
-                Clicked="PayButton_Clicked"/>
+        <!-- 5. ВИД ОПЛАТЫ: наличные / QR + кнопка комментария -->
+        <VerticalStackLayout Grid.Row="4" Spacing="4" Margin="10,5">
+            <HorizontalStackLayout x:Name="PayTypeLayout" 
+                                   Spacing="10" HorizontalOptions="Center">
+                <Button x:Name="PayTypeCashBtn" Text="Наличные" Clicked="OnPayTypeCash"
+                        WidthRequest="140" HeightRequest="45" CornerRadius="10"
+                        FontSize="16" FontAttributes="Bold"/>
+                <Button x:Name="PayTypeQrBtn" Text="QR-код" Clicked="OnPayTypeQr"
+                        WidthRequest="140" HeightRequest="45" CornerRadius="10"
+                        FontSize="16" FontAttributes="Bold"/>
+                <!-- ★ комментарий кассира (комментарий + номера купюр) → checks_header.comment ★ -->
+                <Button x:Name="CommentBtn" Text="✎" Clicked="OnCommentButtonClicked"
+                        WidthRequest="60" HeightRequest="45" CornerRadius="10"
+                        FontSize="18" BackgroundColor="#FF9E9E9E" TextColor="White"/>
+            </HorizontalStackLayout>
 
+            <!-- ★ текущий комментарий чека; в старом чеке — загруженный из БД ★ -->
+            <Label x:Name="CommentLabel" Text="" IsVisible="False"
+                   TextColor="#E65100" FontSize="13" FontAttributes="Italic"
+                   LineBreakMode="WordWrap" MaxLines="2" Margin="10,0"/>
+        </VerticalStackLayout>
+
+        <!-- 6. ОПЛАТА + УДАЛЕНИЕ ЧЕКА — один ряд -->
+        <Grid Grid.Row="5" ColumnDefinitions="*, Auto" Padding="10,0,10,10">
+            <Button x:Name="PayButton" Text="ОПЛАТА" 
+                    BackgroundColor="#FF2196F3" TextColor="White" 
+                    FontSize="20" FontAttributes="Bold" 
+                    HeightRequest="60"
+                    Clicked="PayButton_Clicked"/>
+            <Button x:Name="DeleteCheckButton" Grid.Column="1"
+                    Text="🗑" 
+                    BackgroundColor="#F44336" TextColor="White"
+                    FontSize="22"
+                    WidthRequest="60" HeightRequest="60" CornerRadius="8"
+                    Margin="10,0,0,0"
+                    Clicked="OnDeleteCheckClicked"
+                    IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+        </Grid>
     </Grid>
 </ContentPage>
