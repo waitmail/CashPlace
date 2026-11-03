@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="CashPlace.VerifyActionsPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:CashPlace"
+             Title="Проверка акций"
+             BackgroundColor="#F2F4F7">
+
+    <!-- ★ Планшетный аналог десктопного окна VerifyActions (Cash8Avalon).
+         «Черновой» чек: товары сканируются вручную, движок ProcessingOfActions
+         считает акции НА КОПИИ строк, НИЧЕГО в БД не пишется.
+         Три таблицы как на десктопе: Товары в чеке / Выполненные товары /
+         Участие в механических акциях. -->
+    <Grid RowDefinitions="Auto, Auto, *, Auto" Padding="10" RowSpacing="8">
+
+        <!-- СТРОКА 0: панель ввода — карта клиента (сверху, вводится разово),
+             ниже — поле сканирования ШК. «Сбросить всё» чистит ВЕСЬ черновик
+             (товары + клиент + акционные ШК), а не текст поля. -->
+        <Frame Grid.Row="0" BackgroundColor="White" BorderColor="#E0E0E0"
+               CornerRadius="12" Padding="12" HasShadow="False">
+            <VerticalStackLayout Spacing="8">
+
+                <!-- Карта клиента (паритет txtB_client_code): вводится разово, поэтому сверху.
+                     10 цифр с «9» — телефон, иначе код карты; найден → 5% на строки без акций. -->
+                <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="8">
+                    <Entry Grid.Column="0" x:Name="ClientCodeEntry"
+                           Placeholder="Карта клиента (10/13 цифр)"
+                           Keyboard="Numeric" MaxLength="13" ReturnType="Done"
+                           Completed="OnClientCodeCompleted"
+                           WidthRequest="240" FontSize="16"/>
+                    <!-- Имя клиента / подсказка (паритет txtB_client) -->
+                    <Label Grid.Column="1" x:Name="ClientLabel" Text=""
+                           TextColor="DarkGreen" FontAttributes="Bold" FontSize="14"
+                           VerticalOptions="Center" LineBreakMode="TailTruncation"/>
+                    <!-- Сброс всего черновика (паритет ClearAll): очищает товары,
+                         результат, участие, акционные ШК и клиента. -->
+                    <Button Grid.Column="2" x:Name="ClearButton" Text="Сбросить всё"
+                            Clicked="OnClearClicked"
+                            BackgroundColor="#FF607D8B" TextColor="White"
+                            FontSize="14" HeightRequest="46"
+                            CornerRadius="8" Padding="14,0"
+                            VerticalOptions="Center"/>
+                </Grid>
+
+                <!-- ШК товара или акционный ШК (паритет txtB_input_code_or_barcode) —
+                     основное рабочее поле, во всю ширину панели; фокус — при открытии страницы. -->
+                <Entry x:Name="BarcodeEntry"
+                       Placeholder="ШК товара / акционный ШК"
+                       Keyboard="Numeric" MaxLength="13" ReturnType="Done"
+                       Completed="OnBarcodeCompleted"
+                       FontSize="16"/>
+
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- СТРОКА 1: полоса ИТОГО (паритет txtxB_summ: кремовый фон, красная сумма) -->
+        <Frame Grid.Row="1" BackgroundColor="#FFF8DC" BorderColor="#FFA500"
+               CornerRadius="10" Padding="12,8" HasShadow="False">
+            <Grid ColumnDefinitions="Auto, *">
+                <Label Grid.Column="0" Text="ИТОГО ПОСЛЕ АКЦИЙ:"
+                       FontSize="15" FontAttributes="Bold" TextColor="#B26A00"
+                       VerticalOptions="Center"/>
+                <Label Grid.Column="1" x:Name="SumLabel" Text="0.00 ₽"
+                       FontSize="24" FontAttributes="Bold" TextColor="#C62828"
+                       HorizontalTextAlignment="End" VerticalOptions="Center"/>
+            </Grid>
+        </Frame>
+
+        <!-- СТРОКА 2: три таблицы, как в десктопном окне -->
+        <Grid Grid.Row="2" RowDefinitions="*, *, *" RowSpacing="8">
+
+            <!-- Таблица 1: Товары в чеке (синяя, паритет TovarTableContainer) -->
+            <Frame Grid.Row="0" BackgroundColor="White" BorderColor="#007ACC"
+                   CornerRadius="10" Padding="0" HasShadow="False">
+                <Grid RowDefinitions="Auto, *">
+                    <Label Grid.Row="0" Text="Товары в чеке"
+                           BackgroundColor="#007ACC" TextColor="White"
+                           FontSize="15" FontAttributes="Bold" Padding="10,6"/>
+                    <CollectionView Grid.Row="1" x:Name="TovarCollectionView"
+                                    SelectionMode="None">
+                        <CollectionView.EmptyView>
+                            <Label Text="Сканируйте товар или введите код"
+                                   TextColor="#9E9E9E" FontSize="13"
+                                   HorizontalOptions="Center"
+                                   Padding="0,8"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="views:VerifyProductItem">
+                                <Grid ColumnDefinitions="66, *, 46, 84, 96, 44"
+                                      Padding="8,4" RowSpacing="0">
+                                    <Label Grid.Column="0" Text="{Binding CodeDisplay}"
+                                           FontSize="13" TextColor="#455A64"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="{Binding Name}"
+                                           FontSize="13" LineBreakMode="TailTruncation"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="{Binding QtyDisplay}"
+                                           FontSize="13" HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="3" Text="{Binding PriceDisplay}"
+                                           FontSize="13" HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="4" Text="{Binding SumDisplay}"
+                                           FontSize="13" FontAttributes="Bold"
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"/>
+                                    <Button Grid.Column="5" Text="✕" FontSize="12"
+                                            WidthRequest="36" HeightRequest="32"
+                                            CornerRadius="6" Padding="0"
+                                            BackgroundColor="#FFEBEE" TextColor="#C62828"
+                                            Clicked="OnDeleteProductClicked"
+                                            BindingContext="{Binding}"
+                                            VerticalOptions="Center"
+                                            HorizontalOptions="End"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Frame>
+
+            <!-- Таблица 2: Выполненные товары (зелёная; строки с action2≠0 — жёлтые) -->
+            <Frame Grid.Row="1" BackgroundColor="White" BorderColor="#4CAF50"
+                   CornerRadius="10" Padding="0" HasShadow="False">
+                <Grid RowDefinitions="Auto, Auto, *">
+                    <Label Grid.Row="0" Text="Выполненные товары (результат акций)"
+                           BackgroundColor="#4CAF50" TextColor="White"
+                           FontSize="15" FontAttributes="Bold" Padding="10,6"/>
+                    <!-- шапка -->
+                    <Grid Grid.Row="1" ColumnDefinitions="66, *, 46, 84, 96, 60, 110"
+                          BackgroundColor="#E8F5E9" Padding="8,3">
+                        <Label Grid.Column="0" Text="Код" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20"/>
+                        <Label Grid.Column="1" Text="Наименование" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20"/>
+                        <Label Grid.Column="2" Text="К-во" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20" HorizontalTextAlignment="End"/>
+                        <Label Grid.Column="3" Text="Цена" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20" HorizontalTextAlignment="End"/>
+                        <Label Grid.Column="4" Text="Сумма" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20" HorizontalTextAlignment="End"/>
+                        <Label Grid.Column="5" Text="Акция" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20" HorizontalTextAlignment="Center"/>
+                        <Label Grid.Column="6" Text="Комментарий" FontSize="12" FontAttributes="Bold" TextColor="#1B5E20"/>
+                    </Grid>
+                    <CollectionView Grid.Row="2" x:Name="TovarExecuteCollectionView"
+                                    SelectionMode="None">
+                        <CollectionView.EmptyView>
+                            <Label Text="Здесь появится результат расчёта акций"
+                                   TextColor="#9E9E9E" FontSize="13"
+                                   HorizontalOptions="Center" Padding="0,8"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="views:VerifyExecuteItem">
+                                <Grid ColumnDefinitions="66, *, 46, 84, 96, 60, 110"
+                                      Padding="8,4">
+                                    <Grid.Triggers>
+                                        <!-- жёлтая подсветка строк, занятых акцией (паритет ApplyRowHighlighting) -->
+                                        <DataTrigger TargetType="Grid"
+                                                     Binding="{Binding IsAction}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="#FFF9C4"/>
+                                        </DataTrigger>
+                                    </Grid.Triggers>
+                                    <Label Grid.Column="0" Text="{Binding CodeDisplay}"
+                                           FontSize="13" TextColor="#455A64" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="{Binding Name}"
+                                           FontSize="13" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="{Binding QtyDisplay}"
+                                           FontSize="13" HorizontalTextAlignment="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="3" Text="{Binding PriceDisplay}"
+                                           FontSize="13" HorizontalTextAlignment="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="4" Text="{Binding SumDisplay}"
+                                           FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="5" Text="{Binding Action2Display}"
+                                           FontSize="13" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+                                    <Label Grid.Column="6" Text="{Binding PromoDescription}"
+                                           FontSize="11" TextColor="#E65100" LineBreakMode="TailTruncation"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Frame>
+
+            <!-- Таблица 3: Участие в механических акциях (фиолетовая) -->
+            <Frame Grid.Row="2" BackgroundColor="White" BorderColor="#9C27B0"
+                   CornerRadius="10" Padding="0" HasShadow="False">
+                <Grid RowDefinitions="Auto, Auto, *">
+                    <Label Grid.Row="0" Text="Участие в механических акциях"
+                           BackgroundColor="#9C27B0" TextColor="White"
+                           FontSize="15" FontAttributes="Bold" Padding="10,6"/>
+                    <Grid Grid.Row="1" ColumnDefinitions="80, 50, *, 70"
+                          BackgroundColor="#F3E5F5" Padding="8,3">
+                        <Label Grid.Column="0" Text="Номер док." FontSize="12" FontAttributes="Bold" TextColor="#4A148C"/>
+                        <Label Grid.Column="1" Text="Тип" FontSize="12" FontAttributes="Bold" TextColor="#4A148C"/>
+                        <Label Grid.Column="2" Text="Комментарий" FontSize="12" FontAttributes="Bold" TextColor="#4A148C"/>
+                        <Label Grid.Column="3" Text="Порядок" FontSize="12" FontAttributes="Bold" TextColor="#4A148C" HorizontalTextAlignment="End"/>
+                    </Grid>
+                    <CollectionView Grid.Row="2" x:Name="ParticipationCollectionView"
+                                    SelectionMode="None">
+                        <CollectionView.EmptyView>
+                            <Label Text="Участие показывается для последнего введённого товара"
+                                   TextColor="#9E9E9E" FontSize="13"
+                                   HorizontalOptions="Center" Padding="0,8"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="views:VerifyParticipationItem">
+                                <Grid ColumnDefinitions="80, 50, *, 70" Padding="8,4">
+                                    <Label Grid.Column="0" Text="{Binding NumDocDisplay}"
+                                           FontSize="13" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="{Binding TipDisplay}"
+                                           FontSize="13" VerticalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="{Binding Comment}"
+                                           FontSize="13" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                    <Label Grid.Column="3" Text="{Binding ExecutionOrderDisplay}"
+                                           FontSize="13" HorizontalTextAlignment="End" VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Frame>
+
+        </Grid>
+
+        <!-- СТРОКА 3: подсказка -->
+        <Label Grid.Row="3" Text="Расчёт не записывается — это только проверка. Номер в колонке «Акция» = № акционного документа."
+               FontSize="12" TextColor="#9E9E9E" HorizontalOptions="Center"
+               HorizontalTextAlignment="Center" LineBreakMode="WordWrap"/>
+
+    </Grid>
+</ContentPage>

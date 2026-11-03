@@ -68,7 +68,12 @@ namespace CashPlace.Services.Actions
     public class ActionCalcResult
     {
         public List<CheckLine> Lines { get; } = new List<CheckLine>();
-        /// <summary>Сообщения кассиру (замена каскада окон десктопа) — показать одним списком.</summary>
+        /// <summary>
+        /// Сообщения кассиру — накопленные аналоги MessageBoxHelper.Show десктопа.
+        /// Полный паритет с десктопом; показываются одним списком при входе
+        /// в окно оплаты. Единственное исключение по ТЗ — дежурное сообщение
+        /// «в чеке меньше 3-х строк»: на планшете НЕ выдаётся (в порту его нет).
+        /// </summary>
         public List<string> Messages { get; } = new List<string>();
         /// <summary>№ документов акций 10 типа (купонная кратность) — уходит в печать купонов.</summary>
         public List<int> CouponActions { get; } = new List<int>();
