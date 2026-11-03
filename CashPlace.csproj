@@ -27,8 +27,8 @@
         <ApplicationId>com.yourname.cash8mobile</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0.53</ApplicationDisplayVersion>
-        <ApplicationVersion>53</ApplicationVersion>
+        <ApplicationDisplayVersion>1.0.68</ApplicationDisplayVersion>
+        <ApplicationVersion>68</ApplicationVersion>
 
         <!-- Минимальные версии платформ -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
@@ -69,6 +69,21 @@
     </ItemGroup>
 
 </Project>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

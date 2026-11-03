@@ -1121,9 +1121,23 @@ if (loadData.ListActionTable?.Count > 0)
             }
 
             // 3. Читаем строки чеков
-            string tableQuery = $@"SELECT document_number, tovar_code, quantity, price, price_at_a_discount, 
-                                      sum, sum_at_a_discount, item_marker, guid 
-                               FROM checks_table WHERE guid IN ({inClause})";
+            // ★ № кассы и date_time_write для строк берём ИЗ ШАПКИ ЧЕКА
+            //   (checks_header) через JOIN по guid:
+            //    - Num_cash раньше не заполнялся → в sales_table попадал дефолт
+            //      из модели (11 при шапке с 10);
+            //    - Date_time_write не заполнялся → пустая строка → SQL Server
+            //      на промежуточном сервере превращал её в 1900-01-01;
+            //    - Num_str — порядковый номер строки внутри чека (1, 2, 3...),
+            //      раньше уходил дефолтный 0.
+            //   ORDER BY нужен, чтобы строки одного документа шли подряд и
+            //   нумерация num_str получилась сквозной внутри чека.
+            string tableQuery = $@"SELECT ct.document_number, ct.tovar_code, ct.quantity, ct.price, ct.price_at_a_discount, 
+                                      ct.sum, ct.sum_at_a_discount, ct.item_marker, ct.guid,
+                                      ch.cash_desk_number, ch.date_time_write
+                               FROM checks_table ct
+                               JOIN checks_header ch ON ch.guid = ct.guid
+                               WHERE ct.guid IN ({inClause})
+                               ORDER BY ct.document_number, ct.rowid";
 
             using (var cmd = new SqliteCommand(tableQuery, conn))
             {
@@ -1131,12 +1145,33 @@ if (loadData.ListActionTable?.Count > 0)
 
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
+                    // ★ нумерация строк внутри чека: 1, 2, 3... (→ num_str)
+                    string curDoc = null;
+                    int rowNum = 0;
+
                     while (await reader.ReadAsync())
                     {
+                        // ★ № кассы строки = № кассы из шапки ЭТОГО же чека
+                        //   (пустое не отправляем — сервер вставляет значение как есть)
+                        string rowNumCash = reader["cash_desk_number"]?.ToString();
+                        if (string.IsNullOrWhiteSpace(rowNumCash)) rowNumCash = "0";
+
+                        // ★ date_time_write строки = date_time_write шапки ЭТОГО же
+                        //   чека — тот же формат дд.ММ.гггг ЧЧ:мм:сс, что и в шапке
+                        string rowDateWrite = FormatDateForServer(reader["date_time_write"]?.ToString() ?? "");
+
+                        // новый документ → нумерация строк снова с 1
+                        string docNum = reader["document_number"].ToString();
+                        if (docNum != curDoc) { curDoc = docNum; rowNum = 0; }
+                        rowNum++;
+
                         var table = new SalesPortionsTable
                         {
                             Shop = salesPortions.Shop,
-                            Num_doc = reader["document_number"].ToString(),
+                            Num_doc = docNum,
+                            Num_cash = rowNumCash,        // ★ № кассы из шапки чека
+                            Date_time_write = rowDateWrite, // ★ как в шапке чека
+                            Num_str = rowNum.ToString(),    // ★ 1, 2, 3... внутри чека
                             Tovar = reader["tovar_code"].ToString(),
                             Quantity = reader["quantity"]?.ToString().Replace(",", ".") ?? "0",
                             Price = reader["price"]?.ToString().Replace(",", ".") ?? "0",

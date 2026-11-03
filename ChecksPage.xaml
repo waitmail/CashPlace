@@ -12,10 +12,6 @@
     <Grid RowDefinitions="Auto, *, Auto, Auto" Padding="10" RowSpacing="6">
 
         <!-- СТРОКА 0: панель даты + кнопка обновления + ограничитель «3 последних».
-             Обработчики — из вашего code-behind: OnRefreshClicked и checkBox.IsChecked.
-             DateSelected НЕ вешаем — этого обработчика в code-behind нет:
-             смена даты применяется по кнопке ⟳ (как в вашей старой версии). -->
-                <!-- СТРОКА 0: панель даты + кнопка обновления + ограничитель «3 последних».
              Контролы лежат на БЕЛЫХ «таблетках», чтобы не сливаться с синей полосой.
              Обработчики — из вашего code-behind: OnRefreshClicked и checkBox.IsChecked.
              DateSelected НЕ вешаем — этого обработчика в code-behind нет:
@@ -166,13 +162,23 @@
                    LineBreakMode="WordWrap"/>
         </Grid>
 
-        <!-- СТРОКА 3: кнопка нового чека -->
-        <Button Grid.Row="3" x:Name="NewCheckButton"
-                Text="＋  НОВЫЙ ЧЕК"
-                Clicked="OnNewCheckClicked"
-                BackgroundColor="#FF2196F3" TextColor="White"
-                FontSize="20" FontAttributes="Bold"
-                HeightRequest="60" CornerRadius="10"/>
+        <!-- СТРОКА 3: кнопки «Проверка акций» (аналог десктопного btn_check_actions)
+             и нового чека — ширина делится ПОПОЛАМ (1:1). -->
+        <Grid Grid.Row="3" ColumnDefinitions="*, *" ColumnSpacing="8">
+            <!-- ★ Проверка акций: черновой подбор товаров без записи чека ★ -->
+            <Button Grid.Column="0" x:Name="VerifyActionsButton"
+                    Text="🔍  ПРОВЕРКА АКЦИЙ"
+                    Clicked="OnVerifyActionsClicked"
+                    BackgroundColor="#FF9C27B0" TextColor="White"
+                    FontSize="16" FontAttributes="Bold"
+                    HeightRequest="60" CornerRadius="10"/>
+            <Button Grid.Column="1" x:Name="NewCheckButton"
+                    Text="＋  НОВЫЙ ЧЕК"
+                    Clicked="OnNewCheckClicked"
+                    BackgroundColor="#FF2196F3" TextColor="White"
+                    FontSize="20" FontAttributes="Bold"
+                    HeightRequest="60" CornerRadius="10"/>
+        </Grid>
 
     </Grid>
 </ContentPage>

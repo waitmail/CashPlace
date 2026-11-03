@@ -7,16 +7,31 @@
              Title="Чек">
              
     <Grid RowDefinitions="Auto, Auto, *, Auto, Auto, Auto">
-        
-        <!-- 1. Верхняя панель -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, *, *" Padding="10" BackgroundColor="#FF007ACC">
+
+        <!-- ★ ЖЕСТЫ РЕЖИМОВ: свайп справа налево — предпросмотр оплаты (режим «ОПЛАТА»),
+             свайп слева направо — возврат к набивке,
+             свайп ВВЕРХ или ВНИЗ — ввод акционного штрихкода (аналог F5 десктопа; работает вне списка
+             товаров, чтобы не спорить с прокруткой). Дублируется кнопкой «★ ШК АКЦИИ». ★ -->
+        <Grid.GestureRecognizers>
+            <SwipeGestureRecognizer Direction="Left" Swiped="OnSwipeToPaymentPreview"/>
+            <SwipeGestureRecognizer Direction="Right" Swiped="OnSwipeBackToComposition"/>
+            <SwipeGestureRecognizer Direction="Down" Swiped="OnSwipePromoBarcode"/>
+            <SwipeGestureRecognizer Direction="Up" Swiped="OnSwipePromoBarcode"/>
+        </Grid.GestureRecognizers>
+
+        <!-- 1. Верхняя панель: при набивке — синяя «Касса №…», в предпросмотре — зелёная «ОПЛАТА» -->
+        <Grid x:Name="TopBar" Grid.Row="0" ColumnDefinitions="*, *, *" Padding="10" BackgroundColor="#FF007ACC">
             <Label Grid.Column="0" x:Name="NumCashLabel" TextColor="White" FontAttributes="Bold"/>
             <Label Grid.Column="1" x:Name="DateTimeLabel" TextColor="White" HorizontalOptions="Center"/>
             <Label Grid.Column="2" x:Name="UserLabel" TextColor="White" HorizontalOptions="End"/>
+            <!-- ★ режим предпросмотра: большая надпись ОПЛАТА вместо служебных полей ★ -->
+            <Label Grid.Column="0" Grid.ColumnSpan="3" x:Name="PayModeLabel" Text="ОПЛАТА"
+                   IsVisible="False" TextColor="White" FontSize="26" FontAttributes="Bold"
+                   HorizontalOptions="Center" VerticalOptions="Center"/>
         </Grid>
 
-        <!-- 2. Поле поиска товара, кнопка сканера и карта клиента -->
-        <HorizontalStackLayout Grid.Row="1" Spacing="10" Margin="10">
+        <!-- 2. Поле поиска товара, кнопка сканера и карта клиента — только при набивке -->
+        <HorizontalStackLayout x:Name="SearchRow" Grid.Row="1" Spacing="10" Margin="10">
             <Entry x:Name="SearchProductEntry" 
                    Placeholder="Отсканируйте штрихкод или код" 
                    Keyboard="Numeric"
@@ -45,11 +60,18 @@
                    VerticalOptions="Center"/>
         </HorizontalStackLayout>
 
-        <!-- 3. Список товаров -->
+        <!-- 2. Список товаров.
+             ★ Акционная кнопка «★ ШК АКЦИИ» переехала ВНИЗ, в ряд вида оплаты (справа от ✎).
+             Введённые ШК дают ПРИОРИТЕТную сработку акций (kind=1 считается первыми),
+             список живёт до конца чека и переживает переходы в окно оплаты и обратно. -->
         <CollectionView Grid.Row="2" x:Name="ProductsCollectionView" 
                         ItemsSource="{Binding ProductsList}" 
                         SelectionMode="None"
                         Margin="5">
+            <CollectionView.GestureRecognizers>
+                <SwipeGestureRecognizer Direction="Left" Swiped="OnSwipeToPaymentPreview"/>
+                <SwipeGestureRecognizer Direction="Right" Swiped="OnSwipeBackToComposition"/>
+            </CollectionView.GestureRecognizers>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="views:ProductItem">
                     <Frame Margin="5" Padding="10" BorderColor="LightGray" HasShadow="False">
@@ -72,14 +94,14 @@
                             <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="10" Margin="0,5,0,0"
                                                    VerticalOptions="Center">
                                 <Button Text="-" WidthRequest="40" Clicked="OnDecreaseQuantity"
-                                        BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+                                        BindingContext="{Binding}" IsEnabled="{Binding IsEditable, Source={x:Reference rootPage}}"/>
                                 <Label Text="{Binding Quantity, StringFormat='Кол-во: {0}'}" VerticalOptions="Center" FontSize="14"/>
                                 <Button Text="+" WidthRequest="40" Clicked="OnIncreaseQuantity"
-                                        BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+                                        BindingContext="{Binding}" IsEnabled="{Binding IsEditable, Source={x:Reference rootPage}}"/>
                                 <Button Text="✕" WidthRequest="40" CornerRadius="8"
                                         BackgroundColor="#FFEBEE" TextColor="#C62828" FontAttributes="Bold"
                                         Clicked="OnDeleteProduct"
-                                        BindingContext="{Binding}" IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+                                        BindingContext="{Binding}" IsEnabled="{Binding IsEditable, Source={x:Reference rootPage}}"/>
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout Grid.Row="2" Grid.Column="1" Spacing="6"
@@ -104,13 +126,17 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- 4. Общая сумма -->
-        <Grid Grid.Row="3" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="LightGray">
-            <Label Grid.Column="0" Text="ИТОГО:" FontSize="20" FontAttributes="Bold" VerticalOptions="Center"/>
-            <Label Grid.Column="1" x:Name="TotalSumLabel" Text="0.00 ₽" FontSize="24" FontAttributes="Bold" TextColor="DarkGreen"/>
+        <!-- 3. Общая сумма; в предпросмотре — «К ОПЛАТЕ» + строка про скидку покупателя -->
+        <Grid Grid.Row="3" RowDefinitions="Auto, Auto" RowSpacing="2" Padding="15,8" BackgroundColor="LightGray">
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                <Label Grid.Column="0" x:Name="TotalCaptionLabel" Text="ИТОГО:" FontSize="20" FontAttributes="Bold" VerticalOptions="Center"/>
+                <Label Grid.Column="1" x:Name="TotalSumLabel" Text="0.00 ₽" FontSize="24" FontAttributes="Bold" TextColor="DarkGreen"/>
+            </Grid>
+            <Label Grid.Row="1" x:Name="DiscountInfoLabel" IsVisible="False" FontSize="13" FontAttributes="Italic"
+                   TextColor="#E65100" HorizontalOptions="End"/>
         </Grid>
 
-        <!-- 5. ВИД ОПЛАТЫ: наличные / QR + кнопка комментария -->
+        <!-- 4. ВИД ОПЛАТЫ: наличные / QR + комментарий + ★ акционный штрихкод (аналог F5 десктопа) -->
         <VerticalStackLayout Grid.Row="4" Spacing="4" Margin="10,5">
             <HorizontalStackLayout x:Name="PayTypeLayout" 
                                    Spacing="10" HorizontalOptions="Center">
@@ -124,7 +150,18 @@
                 <Button x:Name="CommentBtn" Text="✎" Clicked="OnCommentButtonClicked"
                         WidthRequest="60" HeightRequest="45" CornerRadius="10"
                         FontSize="18" BackgroundColor="#FF9E9E9E" TextColor="White"/>
+                <!-- ★ акционный штрихкод: справа от карандаша; ввод также по свайпу вверх/вниз ★ -->
+                <Button x:Name="PromoBarcodeBtn" Text="★ ШК АКЦИИ" Clicked="OnPromoBarcodeClicked"
+                        WidthRequest="130" HeightRequest="45" CornerRadius="10"
+                        FontSize="14" FontAttributes="Bold"
+                        BackgroundColor="#E65100" TextColor="White"/>
             </HorizontalStackLayout>
+
+            <!-- ★ введённые акционные ШК; виден в т.ч. в окне оплаты — список переживает переход ★ -->
+            <Label x:Name="PromoBarcodesLabel" Text="" IsVisible="False"
+                   TextColor="#E65100" FontSize="13" FontAttributes="Italic"
+                   LineBreakMode="WordWrap" HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center" Margin="10,0"/>
 
             <!-- ★ текущий комментарий чека; в старом чеке — загруженный из БД ★ -->
             <Label x:Name="CommentLabel" Text="" IsVisible="False"
@@ -132,9 +169,12 @@
                    LineBreakMode="WordWrap" MaxLines="2" Margin="10,0"/>
         </VerticalStackLayout>
 
-        <!-- 6. ОПЛАТА + УДАЛЕНИЕ ЧЕКА — один ряд -->
-        <Grid Grid.Row="5" ColumnDefinitions="*, Auto" Padding="10,0,10,10">
-            <Button x:Name="PayButton" Text="ОПЛАТА" 
+        <!-- 5. Подсказка режима + ПЕРЕЙТИ К ОПЛАТЕ / СОЗДАТЬ ЧЕК + удаление чека -->
+        <Grid Grid.Row="5" RowDefinitions="Auto, Auto" RowSpacing="4" Padding="10,0,10,10">
+            <Label Grid.Row="0" x:Name="ModeHintLabel" IsVisible="False" FontSize="12" FontAttributes="Italic"
+                   TextColor="Gray" HorizontalOptions="Center"/>
+            <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <Button x:Name="PayButton" Text="ПЕРЕЙТИ К ОПЛАТЕ →" 
                     BackgroundColor="#FF2196F3" TextColor="White" 
                     FontSize="20" FontAttributes="Bold" 
                     HeightRequest="60"
@@ -147,6 +187,7 @@
                     Margin="10,0,0,0"
                     Clicked="OnDeleteCheckClicked"
                     IsEnabled="{Binding IsNewCheck, Source={x:Reference rootPage}}"/>
+            </Grid>
         </Grid>
     </Grid>
 </ContentPage>
