@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CashPlace.PrinterPage"
+             Title="ФР АТОЛ">
+
+    <ScrollView>
+        <Grid Padding="24"
+              ColumnDefinitions="*,*"
+              ColumnSpacing="16"
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+              RowSpacing="16">
+
+            <!-- ============ СОСТОЯНИЕ ФР ============ -->
+            <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                   Text="СОСТОЯНИЕ ФР"
+                   FontSize="20" FontAttributes="Bold" />
+
+            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                    Stroke="#CCCCCC" StrokeShape="RoundRectangle 8"
+                    Padding="14">
+                <Label x:Name="LblStatus"
+                       Text="Нажмите «ОБНОВИТЬ», чтобы проверить связь с ФР."
+                       FontSize="16" LineBreakMode="CharacterWrap" />
+            </Border>
+
+            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                    x:Name="BtnRefresh"
+                    Text="ОБНОВИТЬ / ПРОВЕРИТЬ СВЯЗЬ С ФР"
+                    FontSize="18" HeightRequest="56"
+                    Clicked="BtnRefresh_Clicked" />
+
+            <!-- ============ ОТЧЁТЫ ============ -->
+            <Label Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                   Text="ОТЧЁТЫ"
+                   FontSize="20" FontAttributes="Bold" />
+
+            <Button Grid.Row="4" Grid.Column="0"
+                    x:Name="BtnX"
+                    Text="X-ОТЧЁТ&#10;(смена остаётся открытой)"
+                    FontSize="18" HeightRequest="76"
+                    Clicked="BtnX_Clicked" />
+
+            <Button Grid.Row="4" Grid.Column="1"
+                    x:Name="BtnZ"
+                    Text="Z-ОТЧЁТ&#10;(ЗАКРЫТИЕ СМЕНЫ!)"
+                    FontSize="18" HeightRequest="76"
+                    BackgroundColor="#C62828"
+                    Clicked="BtnZ_Clicked" />
+
+            <!-- ============ НАЛИЧНЫЕ ============ -->
+            <Label Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                   Text="НАЛИЧНЫЕ В ДЕНЕЖНОМ ЯЩИКЕ"
+                   FontSize="20" FontAttributes="Bold" />
+
+            <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+                  ColumnDefinitions="2*,*,*" ColumnSpacing="12">
+                <Entry Grid.Column="0"
+                       x:Name="EntSum"
+                       Placeholder="Сумма, руб."
+                       Keyboard="Numeric"
+                       FontSize="22" HeightRequest="56" />
+                <Button Grid.Column="1"
+                        x:Name="BtnCashIn"
+                        Text="ВНЕСТИ"
+                        FontSize="18" HeightRequest="56"
+                        BackgroundColor="#2E7D32"
+                        Clicked="BtnCashIn_Clicked" />
+                <Button Grid.Column="2"
+                        x:Name="BtnCashOut"
+                        Text="ВЫНЕСТИ"
+                        FontSize="18" HeightRequest="56"
+                        BackgroundColor="#EF6C00"
+                        Clicked="BtnCashOut_Clicked" />
+            </Grid>
+
+            <!-- СБОРКА 8: родное окно настроек драйвера АТОЛ -->
+            <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
+                    x:Name="BtnAtolSettings"
+                    Text="НАСТРОЙКИ АТОЛ&#10;(родное окно драйвера — при ошибке 4)"
+                    FontSize="18" HeightRequest="76"
+                    BackgroundColor="#1565C0"
+                    Clicked="BtnAtolSettings_Clicked" />
+        </Grid>
+    </ScrollView>
+</ContentPage>
