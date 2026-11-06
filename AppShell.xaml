@@ -9,5 +9,6 @@
     <views:MainPage Title="Главная" />
     <views:LoadDataPage Title="Загрузка" />
     <views:ChecksPage Title="Чеки" />
+    <views:PrinterPage Title="ФР" />
 
 </TabbedPage>

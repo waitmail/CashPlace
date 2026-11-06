@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <!-- оллизия peer-класса Fptr (константы IFptr) с настоящим классом Fptr -->
+    <attr path="/api/package[@name='ru.atol.drivers10.fptr']/class[@name='Fptr']" name="managedName">FptrImpl</attr>
+</metadata>

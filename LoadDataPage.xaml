@@ -4,7 +4,7 @@
              x:Class="CashPlace.LoadDataPage"
              Title="Загрузка данных">
              
-    <Grid Padding="15" RowDefinitions="Auto, Auto, Auto, Auto, Auto, *">
+    <Grid Padding="15" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *">
         
         <!-- Блок 1: Загрузка данных -->
         <VerticalStackLayout Grid.Row="0" Spacing="5" Margin="0,0,0,15">
@@ -29,13 +29,13 @@
                    FontSize="14" TextColor="#888888" HorizontalOptions="Start" Margin="5,0,0,0"/>
         </VerticalStackLayout>
         
-        <Label Grid.Row="2" x:Name="WorkHintText" Text="Во время загрузки вы можете продолжать работу" 
+        <Label Grid.Row="3" x:Name="WorkHintText" Text="Во время загрузки вы можете продолжать работу" 
                FontSize="13" FontAttributes="Italic" TextColor="#4CAF50" Margin="0,5,0,0" IsVisible="False"/>
         
-        <Label Grid.Row="3" x:Name="TimeInfoText" Text="Время загрузки: 00:00" 
+        <Label Grid.Row="4" x:Name="TimeInfoText" Text="Время загрузки: 00:00" 
                FontSize="16" TextColor="#666666" Margin="0,0,0,5" IsVisible="False"/>
         
-        <Border Grid.Row="4" BackgroundColor="#F8F8F8" Stroke="#CCCCCC" StrokeShape="RoundRectangle 8" Padding="15" Margin="0,5,0,0">
+        <Border Grid.Row="5" BackgroundColor="#F8F8F8" Stroke="#CCCCCC" StrokeShape="RoundRectangle 8" Padding="15" Margin="0,5,0,0">
             <VerticalStackLayout x:Name="ProgressPanel" Spacing="10" IsVisible="False">
                 <Label x:Name="StatusText" Text="Подготовка..." FontSize="15" FontAttributes="Bold" HorizontalOptions="Center"/>
                 <ProgressBar x:Name="ProgressBar1" Progress="0" HeightRequest="25"/>
@@ -43,7 +43,7 @@
             </VerticalStackLayout>
         </Border>
 
-        <ScrollView Grid.Row="5" Margin="0,10,0,0">
+        <ScrollView Grid.Row="6" Margin="0,10,0,0">
             <Label x:Name="LogText" Text="" FontSize="12" TextColor="Gray"/>
         </ScrollView>
     </Grid>

@@ -27,8 +27,8 @@
         <ApplicationId>com.yourname.cash8mobile</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0.68</ApplicationDisplayVersion>
-        <ApplicationVersion>68</ApplicationVersion>
+        <ApplicationDisplayVersion>1.0.100</ApplicationDisplayVersion>
+        <ApplicationVersion>100</ApplicationVersion>
 
         <!-- Минимальные версии платформ -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
@@ -52,7 +52,16 @@
 
         <!-- Raw Assets -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
-    </ItemGroup>
+    </ItemGroup>	
+
+	<ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+		<AndroidLibrary Remove="Platforms\Android\Jars\libfptr10.aar" />
+		<AndroidLibrary Include="Platforms\Android\Jars\libfptr10.aar" Bind="true" />
+		<TransformFile Include="Transforms\Metadata.xml" />
+	</ItemGroup>
+
+
+
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0-preview.5.26302.115" />
@@ -69,6 +78,38 @@
     </ItemGroup>
 
 </Project>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

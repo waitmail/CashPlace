@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -1013,8 +1014,8 @@ if (loadData.ListActionTable?.Count > 0)
         // Пробуем распарсить дату (это сработает и для yyyy-MM-dd, и для dd.MM.yyyy)
         if (DateTime.TryParse(dateString, out DateTime parsedDate))
         {
-            // Возвращаем в строгом формате дд.мм.гггг ЧЧ:мм:сс
-            return parsedDate.ToString("dd.MM.yyyy HH:mm:ss");
+            // ★ Формат КАК В ДЕСКТОПЕ (getdata_h/getdata_t): dd-MM-yyyy HH:mm:ss
+            return parsedDate.ToString("dd-MM-yyyy HH:mm:ss");
         }
 
         // Если распарсить не удалось, возвращаем оригинал
@@ -1034,13 +1035,25 @@ if (loadData.ListActionTable?.Count > 0)
 
         var guidsToSend = new List<string>();
 
+        // ★ Поля паритета, которых может не быть в модели SalesPortionsHeader /
+        //   SalesPortionsTable (ClientPhone, Sum_terminal, SBP, Action1...).
+        //   Храним отдельно и дописываем прямо в JSON перед отправкой, чтобы
+        //   НЕ зависеть от состава модели (иначе CS0117 на компиляции).
+        var headerExtraByGuid = new Dictionary<string, JObject>();
+        var tableActionByIndex = new List<string>();
+
         using (var conn = MainStaticClass.GetLocalSQLiteConnection())
         {
             await conn.OpenAsync();
 
             // 1. Получаем GUID неотправленных чеков
+            //    Паритет с get_document_list_not_sent десктопа: порядок по
+            //    document_number; its_deleted=2 (чек удалён целиком) не выгружаем.
+            //    (order_state=1 «заказ в работе» десктоп отсекает — на планшете
+            //    заказы в checks_header не хранятся, отсекать нечего.)
             string selectGuids =
-                "SELECT DISTINCT guid FROM checks_header WHERE is_sent = 0 AND guid IS NOT NULL AND its_deleted < 2";
+                "SELECT guid FROM checks_header WHERE is_sent = 0 AND guid IS NOT NULL AND its_deleted < 2 " +
+                "GROUP BY guid ORDER BY MIN(document_number)";
             using (var cmd = new SqliteCommand(selectGuids, conn))
             {
                 using (var reader = await cmd.ExecuteReaderAsync())
@@ -1058,10 +1071,23 @@ if (loadData.ListActionTable?.Count > 0)
             string inClause = string.Join(",", guidsToSend.Select((g, i) => $"@g{i}"));
 
             // 2. Читаем шапки чеков
-            string headerQuery = $@"SELECT document_number, cash_desk_number, client, discount, cash, check_type, 
-                                       date_time_start, date_time_write, its_deleted, autor, comment, 
-                                       its_print, its_print_p, extra, guid 
-                                FROM checks_header WHERE guid IN ({inClause})";
+            // ★ LEFT JOIN clients — берём телефон клиента (паритет с десктопом):
+            //   известный клиент → cl.phone; нового клиента в базе нет → NULL
+            //   (тогда телефоном станет сам номер из checks_header.client, см. ниже).
+            // ★ +8 колонок для паритета getdata_h: суммы по видам оплаты
+            //   (cash_money/non_cash_money/sertificate_money + «первые»),
+            //   остаток remainder и флаг СБП payment_by_sbp — их пишет
+            //   CheckPage при сохранении/оплате чека
+            string headerQuery = $@"SELECT ch.document_number, ch.cash_desk_number, ch.client, ch.discount, ch.cash, ch.check_type, 
+                                       ch.date_time_start, ch.date_time_write, ch.its_deleted, ch.autor, ch.comment, 
+                                       ch.its_print, ch.its_print_p, ch.extra, ch.guid, 
+                                       ch.cash_money, ch.non_cash_money, ch.sertificate_money, 
+                                       ch.cash_money1, ch.non_cash_money1, ch.sertificate_money1, 
+                                       ch.remainder, ch.payment_by_sbp, 
+                                       cl.phone 
+                                FROM checks_header ch
+                                LEFT JOIN clients cl ON ch.client = cl.code
+                                WHERE ch.guid IN ({inClause})";
 
             using (var cmd = new SqliteCommand(headerQuery, conn))
             {
@@ -1089,17 +1115,39 @@ if (loadData.ListActionTable?.Count > 0)
                             return Convert.ToInt32(val);
                         }
 
+                        // ★ ТЕЛЕФОН КЛИЕНТА → ClientPhone → card_id НА СЕРВЕРЕ
+                        //   (паритет с десктопом SendDataOnSalesPortions):
+                        //   известный клиент → телефон из локальной таблицы clients;
+                        //   нового клиента в базе нет → телефон, введённый кассиром
+                        //   (checks_header.client). Промежуточная база заводит НОВЫХ
+                        //   клиентов именно по card_id — раньше планшет это поле
+                        //   не заполнял, и новые клиенты с планшета не заезжали.
+                        string clientVal = GetSafeString("client");
+                        string clientPhone = GetSafeString("phone");
+                        if (clientPhone == "") clientPhone = clientVal;
+                        clientPhone = clientPhone.Replace("+7", "");
+
+                        // ★ наличные: cash_money; для чеков старого формата
+                        //   (колонка не заполнялась, NULL) — общая сумма чека,
+                        //   как ехало на сервер раньше
+                        string cashMoney = GetSafeString("cash_money");
+                        if (cashMoney == "") cashMoney = GetSafeString("cash");
+
                         var header = new SalesPortionsHeader
                         {
                             Shop = salesPortions.Shop,
                             Num_doc = GetSafeString("document_number"),
                             Num_cash = GetSafeString("cash_desk_number"),
-                            Client = GetSafeString("client"),
+                            Client = clientVal,
                             // Если вернулась пустая строка, заменяем на "0", иначе меняем запятые на точки
                             Discount =
                                 (GetSafeString("discount") == "" ? "0" : GetSafeString("discount")).Replace(",", "."),
                             Sum = (GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
-                            Sum_cash = (GetSafeString("cash") == "" ? "0" : GetSafeString("cash")).Replace(",", "."),
+                            // ★ Sum_cash = ТОЛЬКО наличные (cash_money), как в
+                            //   getdata_h десктопа. Раньше сюда дублировалась вся
+                            //   сумма чека — при QR-оплате сервер считал чек
+                            //   полностью наличным.
+                            Sum_cash = cashMoney.Replace(",", "."),
                             Check_type = GetSafeString("check_type") == "" ? "0" : GetSafeString("check_type"),
                             // Date_time_start = GetSafeString("date_time_start"),
                             // Date_time_write = GetSafeString("date_time_write"),
@@ -1116,6 +1164,26 @@ if (loadData.ListActionTable?.Count > 0)
                             Guid = GetSafeString("guid")
                         };
                         salesPortions.ListSalesPortionsHeader.Add(header);
+
+                        // ★ добор полей паритета getdata_h (в модели их может
+                        //   не быть — дописываем в JSON перед отправкой):
+                        //   - Sum_terminal ← non_cash_money: QR/карта = безналичная,
+                        //     как на десктопе; при QR сервер видит СБП-чек;
+                        //   - суммы «1» (SystemTaxation 3/5) — на планшете всегда 0;
+                        //   - SumCashRemainder ← remainder, SBP ← payment_by_sbp;
+                        //   - ClientPhone — телефон → card_id на сервере,
+                        //     заводит НОВЫХ клиентов (паритет десктопа).
+                        headerExtraByGuid[header.Guid ?? ""] = new JObject
+                        {
+                            ["Sum_terminal"] = GetSafeString("non_cash_money").Replace(",", "."),
+                            ["Sum_certificate"] = GetSafeString("sertificate_money").Replace(",", "."),
+                            ["Sum_cash1"] = GetSafeString("cash_money1").Replace(",", "."),
+                            ["Sum_terminal1"] = GetSafeString("non_cash_money1").Replace(",", "."),
+                            ["Sum_certificate1"] = GetSafeString("sertificate_money1").Replace(",", "."),
+                            ["SumCashRemainder"] = GetSafeString("remainder").Replace(",", "."),
+                            ["SBP"] = GetSafeInt("payment_by_sbp") == 1 ? "1" : "0",
+                            ["ClientPhone"] = clientPhone
+                        };
                     }
                 }
             }
@@ -1125,15 +1193,17 @@ if (loadData.ListActionTable?.Count > 0)
             //   (checks_header) через JOIN по guid:
             //    - Num_cash раньше не заполнялся → в sales_table попадал дефолт
             //      из модели (11 при шапке с 10);
-            //    - Date_time_write не заполнялся → пустая строка → SQL Server
-            //      на промежуточном сервере превращал её в 1900-01-01;
+            //    - Date_time_write строки = date_time_start ШАПКИ — ровно как
+            //      в getdata_t десктопа (там в SQL выбран
+            //      checks_header.date_time_start); пустая строка давала
+            //      1900-01-01 на промежуточном сервере;
             //    - Num_str — порядковый номер строки внутри чека (1, 2, 3...),
             //      раньше уходил дефолтный 0.
             //   ORDER BY нужен, чтобы строки одного документа шли подряд и
             //   нумерация num_str получилась сквозной внутри чека.
             string tableQuery = $@"SELECT ct.document_number, ct.tovar_code, ct.quantity, ct.price, ct.price_at_a_discount, 
-                                      ct.sum, ct.sum_at_a_discount, ct.item_marker, ct.guid,
-                                      ch.cash_desk_number, ch.date_time_write
+                                      ct.sum, ct.sum_at_a_discount, ct.item_marker, ct.guid, ct.action,
+                                      ch.cash_desk_number, ch.date_time_start
                                FROM checks_table ct
                                JOIN checks_header ch ON ch.guid = ct.guid
                                WHERE ct.guid IN ({inClause})
@@ -1156,9 +1226,9 @@ if (loadData.ListActionTable?.Count > 0)
                         string rowNumCash = reader["cash_desk_number"]?.ToString();
                         if (string.IsNullOrWhiteSpace(rowNumCash)) rowNumCash = "0";
 
-                        // ★ date_time_write строки = date_time_write шапки ЭТОГО же
-                        //   чека — тот же формат дд.ММ.гггг ЧЧ:мм:сс, что и в шапке
-                        string rowDateWrite = FormatDateForServer(reader["date_time_write"]?.ToString() ?? "");
+                        // ★ Date_time_write строки = date_time_start ШАПКИ этого
+                        //   же чека (паритет getdata_t десктопа), формат dd-MM-yyyy HH:mm:ss
+                        string rowDateWrite = FormatDateForServer(reader["date_time_start"]?.ToString() ?? "");
 
                         // новый документ → нумерация строк снова с 1
                         string docNum = reader["document_number"].ToString();
@@ -1182,6 +1252,11 @@ if (loadData.ListActionTable?.Count > 0)
                             Guid = reader["guid"]?.ToString()
                         };
                         salesPortions.ListSalesPortionsTable.Add(table);
+                        // ★ Action1 строки = № акции (num_doc) из checks_table.action
+                        //   (ProductItem.Action хранит num_doc — как action_num_doc на
+                        //   десктопе); в модели может отсутствовать — дописываем
+                        //   в JSON по индексу ниже
+                        tableActionByIndex.Add(reader["action"]?.ToString() ?? "0");
                     }
                 }
             }
@@ -1193,6 +1268,39 @@ if (loadData.ListActionTable?.Count > 0)
         string key = MainStaticClass.Nick_Shop.Trim() + CryptorEngine.GetCountDay() + MainStaticClass.Code_Shop.Trim();
         string data = JsonConvert.SerializeObject(salesPortions, Formatting.Indented,
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+        // ★ ДОПИСЫВАЕМ В JSON поля паритета, которых может не быть в модели
+        //   (ClientPhone, Sum_terminal, Sum_certificate, суммы «1»,
+        //   SumCashRemainder, SBP — как их шлёт getdata_h десктопа;
+        //   Action1 — как в getdata_t). Через JObject, чтобы компиляция
+        //   не зависела от состава модели (CS0117).
+        //   Шапки: по guid; строки: по индексу (порядок JSON совпадает с
+        //   порядком чтения — тот же SQL с тем же ORDER BY).
+        JObject salesJson = JObject.Parse(data);
+        if (salesJson["ListSalesPortionsHeader"] is JArray headersJson)
+        {
+            foreach (JObject headerJson in headersJson.OfType<JObject>())
+            {
+                string hdrGuid = headerJson["Guid"]?.ToString() ?? "";
+                if (headerExtraByGuid.TryGetValue(hdrGuid, out JObject hdrExtra))
+                {
+                    foreach (var extraProp in hdrExtra.Properties())
+                    {
+                        headerJson[extraProp.Name] = extraProp.Value;
+                    }
+                }
+            }
+            data = salesJson.ToString(Formatting.Indented);
+        }
+        if (salesJson["ListSalesPortionsTable"] is JArray tablesJson)
+        {
+            for (int i = 0; i < tablesJson.Count && i < tableActionByIndex.Count; i++)
+            {
+                tablesJson[i]["Action1"] = tableActionByIndex[i];
+            }
+            data = salesJson.ToString(Formatting.Indented);
+        }
+
         string data_crypt = CryptorEngine.Encrypt(data, true, key);
 
         DS ds = await ServiceLocator.DsAsync();
